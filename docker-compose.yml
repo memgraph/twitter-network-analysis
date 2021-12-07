@@ -14,7 +14,7 @@ services:
         "/usr/lib/memgraph/memgraph",
         "--telemetry-enabled=false",
         "--kafka-bootstrap-servers=kafka:9092",
-        "--query-modules-directory=/transformations",
+        "--query-modules-directory=/transformations,/usr/lib/memgraph/query_modules",
         "--log-level=TRACE",
       ]
     networks:
@@ -56,7 +56,7 @@ services:
     restart: "no"
     depends_on:
       - kafka
-      - memgraph
+      - memgraph-mage
 
   stream:
     build:

@@ -4,7 +4,7 @@ import json
 
 @mgp.transformation
 def tweet(messages: mgp.Messages
-           ) -> mgp.Record(query=str, parameters=mgp.Nullable[mgp.Map]):
+          ) -> mgp.Record(query=str, parameters=mgp.Nullable[mgp.Map]):
     result_queries = []
 
     for i in range(messages.total_messages()):
@@ -13,7 +13,9 @@ def tweet(messages: mgp.Messages
         if tweet_dict["target_username"]:
             result_queries.append(
                 mgp.Record(
-                    query=("MERGE (:User {username: $source_username})-[:RETWEETED]-(:User {username: $target_username})"),
+                    query=("MERGE (u1:User {username: $source_username}) "
+                           "MERGE (u2:User {username: $target_username}) "
+                           "MERGE (u1)-[:RETWEETED]-(u2)"),
                     parameters={
                         "source_username": tweet_dict["source_username"],
                         "target_username": tweet_dict["target_username"]}))

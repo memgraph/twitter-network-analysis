@@ -35,8 +35,9 @@ You will need:
 * [Docker](https://docs.docker.com/get-docker/)
 * [Docker Compose](https://docs.docker.com/compose/install/) (included with
   Docker Desktop on Windows and macOS)
+* Clone the [MAGE repository](https://github.com/memgraph/mage) and run `docker build  -t memgraph-mage .`
 
-### Running the app
+### 1. Running the app
 
 **1.** First, remove possibly running containers:
 
@@ -62,7 +63,24 @@ docker-compose up -d core
 docker-compose up stream
 ```
 
-### Creating the stream in Memgraph
+### 2. Initialize Online PageRank
+
+**1.** Set the PageRank parameters:
+
+```cypher
+CALL pagerank_online.set(100, 0.2) YIELD *;
+```
+
+**2.** Create the PageRank trigger:
+
+```cypher
+CREATE TRIGGER pagerank_trigger
+BEFORE COMMIT
+EXECUTE CALL pagerank_online.update(createdVertices, createdEdges, deletedVertices, deletedEdges) YIELD *
+SET node.rank = rank;
+```
+
+### 3. Creating the stream in Memgraph
 
 **1.** First, we will create a stream for consuming retweet info:
 
@@ -83,4 +101,38 @@ START ALL STREAMS;
 
 ```cypher
 SHOW STREAMS;
+```
+
+## 4. Memgraph Lab style
+
+Don't forget that in the two lines that contain `Mul(Div(Property(node, "rank"), 1), 1000)`, 
+the last number needs to be changed if the nodes are too small or too large.
+
+```
+@NodeStyle {
+  size: Mul(Div(Property(node, "rank"), 1), 10000)
+  border-width: 5
+  border-color: #ffffff
+  shadow-color: #bab8bb
+  shadow-size: 6
+}
+
+@NodeStyle Greater?(Size(Labels(node)), 0) {
+  label: Format(":{}", Join(Labels(node), " :"))
+}
+
+@NodeStyle HasLabel?(node, "User") {
+  color: #dd2222
+  color-hover: Darker(#dd2222)
+  color-selected: #dd2222
+}
+
+@NodeStyle HasProperty?(node, "username") {
+  label: AsText(Property(node, "username"))
+}
+
+@EdgeStyle {
+  width: 3
+  label: Type(edge)
+}
 ```
