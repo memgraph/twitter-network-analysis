@@ -103,7 +103,7 @@ START ALL STREAMS;
 SHOW STREAMS;
 ```
 
-## 4. Memgraph Lab style
+### 4. Memgraph Lab style
 
 Don't forget that in the two lines that contain `Mul(Div(Property(node, "rank"), 1), 1000)`, 
 the last number needs to be changed if the nodes are too small or too large.
@@ -135,4 +135,14 @@ the last number needs to be changed if the nodes are too small or too large.
   width: 3
   label: Type(edge)
 }
+```
+
+### 5. Get the results
+
+Run the following query:
+
+```cypher
+MATCH (n)-[r]-(m) 
+RETURN n, r, m 
+LIMIT 500;
 ```
