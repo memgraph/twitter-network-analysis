@@ -17,7 +17,8 @@ def create(created_objects: mgp.Any
             created_object = {
                 'id': obj['vertex'].id,
                 'labels': [label.name for label in obj['vertex'].labels],
-                'username': obj['vertex'].properties['username']
+                'username': obj['vertex'].properties['username'],
+                'rank': obj['vertex'].properties['rank']
             }
             created_objects_info['vertices'].append(created_object)
         else:

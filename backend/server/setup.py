@@ -19,6 +19,15 @@ def connect_to_memgraph(memgraph_ip, memgraph_port):
 def run(memgraph):
     try:
         memgraph.drop_database()
+
+        log.info("Setting up PageRank")
+        memgraph.execute("CALL pagerank_online.set(100, 0.2) YIELD *")
+        memgraph.execute(
+            """CREATE TRIGGER pagerank_trigger 
+               BEFORE COMMIT 
+               EXECUTE CALL pagerank_online.update(createdVertices, createdEdges, deletedVertices, deletedEdges) YIELD *
+               SET node.rank = rank;""")
+
         log.info("Creating stream connections on Memgraph")
         memgraph.execute(
             "CREATE STREAM retweets TOPICS retweets TRANSFORM twitter.tweet")
