@@ -9,12 +9,15 @@ services:
     build: ./memgraph
     ports:
       - "7687:7687"
+    environment:
+      KAFKA_IP: kafka
+      KAFKA_PORT: "9092"
     entrypoint:
       [
         "/usr/lib/memgraph/memgraph",
         "--telemetry-enabled=false",
         "--kafka-bootstrap-servers=kafka:9092",
-        "--query-modules-directory=/transformations,/usr/lib/memgraph/query_modules",
+        "--query-modules-directory=/procedures,/transformations,/usr/lib/memgraph/query_modules",
         "--log-level=TRACE",
       ]
     networks:
@@ -67,5 +70,23 @@ services:
       KAFKA_IP: kafka
       KAFKA_PORT: 9092
       KAFKA_TOPIC: "retweets"
+    networks:
+      - app-tier
+
+  backend-app:
+    build: ./backend
+    volumes:
+      - ./backend:/app
+    ports:
+      - "5000:5000"
+    environment:
+      KAFKA_IP: kafka
+      KAFKA_PORT: 9092
+      KAFKA_TOPIC: "created_objects"
+      MEMGRAPH_IP: memgraph-mage
+      MEMGRAPH_PORT: "7687"
+    depends_on:
+      - memgraph-mage
+      - kafka
     networks:
       - app-tier
