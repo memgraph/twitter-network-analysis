@@ -80,7 +80,25 @@ EXECUTE CALL pagerank_online.update(createdVertices, createdEdges, deletedVertic
 SET node.rank = rank;
 ```
 
-### 3. Creating the stream in Memgraph
+### 3. Initialize online community detection 
+
+**1.** Set the parameters for LabelRankT:
+```cypher
+CALL community_detection_online.set(True, False, 0.7, 4.0, 0.1, "weight", 1.0, 100, 5)
+YIELD *;
+```
+
+**2.** Create the LabelRankT trigger:
+```cypher
+CREATE TRIGGER labelrankt_trigger 
+BEFORE COMMIT
+EXECUTE CALL community_detection_online.update(createdVertices, createdEdges, updatedVertices, updatedEdges, deletedVertices, deletedEdges) 
+YIELD node, community_id
+SET node.cluster=community_id;
+
+```
+
+### 4. Creating the stream in Memgraph
 
 **1.** First, we will create a stream for consuming retweet info:
 
@@ -102,8 +120,18 @@ START ALL STREAMS;
 ```cypher
 SHOW STREAMS;
 ```
+### 4. Get the results
 
-### 4. Memgraph Lab style
+Run the following query:
+
+```cypher
+MATCH (n)-[r]-(m) 
+RETURN n, r, m 
+LIMIT 500;
+```
+
+
+### 5. Memgraph Lab style
 
 Don't forget that in the two lines that contain `Mul(Div(Property(node, "rank"), 1), 1000)`, 
 the last number needs to be changed if the nodes are too small or too large.
@@ -135,14 +163,29 @@ the last number needs to be changed if the nodes are too small or too large.
   width: 3
   label: Type(edge)
 }
+
+
+@NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 0)) {
+  color: #FAD7A0
+}
+
+@NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 1)) {
+  color: #3333FF
+}
+
+@NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 2)) {
+  color: #CD158A
+}
+@NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 3)) {
+  color: #00FFFF
+}
+@NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 4)) {
+  color: #15CD18
+}
+@NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 5)) {
+  color: #FFCD18
+}
+
+
 ```
 
-### 5. Get the results
-
-Run the following query:
-
-```cypher
-MATCH (n)-[r]-(m) 
-RETURN n, r, m 
-LIMIT 500;
-```
