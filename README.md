@@ -120,7 +120,7 @@ START ALL STREAMS;
 ```cypher
 SHOW STREAMS;
 ```
-### 4. Get the results
+### 5. Get the results
 
 Run the following query:
 
@@ -130,8 +130,37 @@ RETURN n, r, m
 LIMIT 500;
 ```
 
+### 6. Call node2vec and link prediction
+**1.** Call node2vec
+Parameters are set as following:
+* is_directed=True
+* p = 1/128  # return parameter
+* q = 1  # in-out parameter
+* num_walks = 10
+* walk_length = 80
+* vector_size = 8
+* alpha = 0.02
+* window = 5
+* min_count = 1
+* seed = 1
+* workers = 4
+* min_alpha = 0.0001
+* sg = 1
+* hs = 0
+* negative = 5
+* epochs = 5
 
-### 5. Memgraph Lab style
+```cypher
+CALL node2vec.set_embeddings(True, 0.008, 1, 10, 80, 8, 0.02, 5, 1, 1, 4, 0.0001, 1, 0, 5) YIELD *;
+```
+
+**2.** Call link prediction:
+```cypher
+CALL link_prediction.predict() YIELD *;
+```
+
+
+### 6. Memgraph Lab style
 
 Don't forget that in the two lines that contain `Mul(Div(Property(node, "rank"), 1), 1000)`, 
 the last number needs to be changed if the nodes are too small or too large.
