@@ -25,7 +25,7 @@ Data is streamed via Kafka and stream processing is performed with Memgraph.
 
 ## Data model
 
-**TODO**
+![memgraph-tutorial-twitter-pagerank-graph-schema](https://public-assets.memgraph.com/twitter-analysis-with-dynamic-pagerank/memgraph-tutorial-twitter-pagerank-graph-schema.png)
 
 ## Usage
 
@@ -214,3 +214,8 @@ CALL link_prediction.predict() YIELD *;
 
 ```
 
+## 7. Node embedding visual
+
+![memgraph-tutorial-example-embedding](https://public-assets.memgraph.com/node-embeddings/memgraph-tutorial-example-embedding.png)
+![karate-club-graph](/img/karate-club-graph.png)
+![karate-club-matplotlib](/img/karate-club-matplotlib.png)
