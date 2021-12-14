@@ -162,12 +162,9 @@ CALL link_prediction.predict() YIELD *;
 
 ### 6. Memgraph Lab style
 
-Don't forget that in the two lines that contain `Mul(Div(Property(node, "rank"), 1), 1000)`, 
-the last number needs to be changed if the nodes are too small or too large.
-
 ```
 @NodeStyle {
-  size: Mul(Div(Property(node, "rank"), 1), 10000)
+  size: Sqrt(Mul(Property(node, "rank"), 100000))
   border-width: 5
   border-color: #ffffff
   shadow-color: #bab8bb
@@ -192,7 +189,6 @@ the last number needs to be changed if the nodes are too small or too large.
   width: 3
   label: Type(edge)
 }
-
 
 @NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 0)) {
   color: #FAD7A0
