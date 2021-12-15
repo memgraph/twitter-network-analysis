@@ -17,6 +17,4 @@ RUN pip3 install -r requirements.txt
 COPY transformations/ /transformations
 COPY procedures/ /procedures
 
-COPY modules/ /usr/lib/memgraph/query_modules
-
 USER memgraph

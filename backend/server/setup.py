@@ -29,6 +29,17 @@ def run(memgraph):
                SET node.rank = rank;"""
         )
 
+        log.info("Setting up community detection")
+        memgraph.execute(
+            "CALL community_detection_online.set(False, False, 0.7, 4.0, 0.1, 'weight', 1.0, 100, 5) YIELD *;")
+        memgraph.execute(
+            """CREATE TRIGGER labelrankt_trigger 
+               BEFORE COMMIT
+               EXECUTE CALL community_detection_online.update(createdVertices, createdEdges, updatedVertices, updatedEdges, deletedVertices, deletedEdges) 
+               YIELD node, community_id
+               SET node.cluster=community_id;"""
+        )
+
         log.info("Creating stream connections on Memgraph")
         memgraph.execute(
             "CREATE KAFKA STREAM retweets TOPICS retweets TRANSFORM twitter.tweet"
