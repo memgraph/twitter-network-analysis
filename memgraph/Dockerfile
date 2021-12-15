@@ -1,4 +1,4 @@
-FROM memgraph-mage
+FROM memgraph/memgraph-mage:1.1
 
 USER root
 
@@ -16,5 +16,7 @@ RUN pip3 install -r requirements.txt
 # Copy the local query modules
 COPY transformations/ /transformations
 COPY procedures/ /procedures
+
+COPY modules/ /usr/lib/memgraph/query_modules
 
 USER memgraph
