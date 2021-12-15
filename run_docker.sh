@@ -8,5 +8,3 @@ echo Starting Docker containers
 docker-compose up -d core
 docker-compose up -d stream
 docker-compose up backend-app
-sleep 5
-curl localhost:5000/api/graph
