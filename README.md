@@ -159,16 +159,49 @@ CALL node2vec.set_embeddings(True, 0.008, 1, 10, 80, 8, 0.02, 5, 1, 1, 4, 0.0001
 CALL link_prediction.predict() YIELD *;
 ```
 
-
 ### 6. Memgraph Lab style
+
+#### PageRank style
 
 ```
 @NodeStyle {
-  size: Sqrt(Mul(Property(node, "rank"), 100000))
-  border-width: 5
-  border-color: #ffffff
-  shadow-color: #bab8bb
-  shadow-size: 6
+  size: Sqrt(Mul(Div(Property(node, "rank"), 1), 200000))
+  border-width: 1
+  border-color: #000000
+  shadow-color: #1D9BF0
+  shadow-size: 10
+  image-url: "https://i.imgur.com/UV7Nl0i.png"
+}
+
+@NodeStyle Greater?(Size(Labels(node)), 0) {
+  label: Format(":{}", Join(Labels(node), " :"))
+}
+
+@NodeStyle HasLabel?(node, "User") {
+  color: #1D9BF0
+  color-hover: Darker(#dd2222)
+  color-selected: #dd2222
+}
+
+@NodeStyle HasProperty?(node, "username") {
+  label: AsText(Property(node, "username"))
+}
+
+@EdgeStyle {
+  width: 1
+}
+```
+
+#### Community detection style
+
+```
+@NodeStyle {
+  size: 50
+  border-width: 1
+  border-color: #000000
+  shadow-color: #1D9BF0
+  shadow-size: 10
+  image-url: "https://i.imgur.com/UV7Nl0i.png"
 }
 
 @NodeStyle Greater?(Size(Labels(node)), 0) {
@@ -181,39 +214,82 @@ CALL link_prediction.predict() YIELD *;
   color-selected: #dd2222
 }
 
-@NodeStyle HasProperty?(node, "username") {
-  label: AsText(Property(node, "username"))
+@NodeStyle HasLabel?(node, "__mg_vertex__") {
+  color: #FB6E00
+  color-hover: Darker(#FB6E00)
+  color-selected: #FB6E00
+}
+
+@NodeStyle HasProperty?(node, "name") {
+  label: AsText(Property(node, "name"))
 }
 
 @EdgeStyle {
   width: 3
-  label: Type(edge)
 }
+
 
 @NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 0)) {
-  color: #FAD7A0
+  color: #808000 
 }
-
 @NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 1)) {
-  color: #3333FF
+  color: #00FF00 
 }
-
 @NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 2)) {
-  color: #CD158A
+  color: #00FFFF  
 }
 @NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 3)) {
-  color: #00FFFF
+  color: #008080  
 }
 @NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 4)) {
-  color: #15CD18
+  color: #800000 
 }
 @NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 5)) {
   color: #FFCD18
 }
-
-
+@NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 6)) {
+  color: #FF00FF 
+}
+@NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 7)) {
+  color: #800080 
+}
+@NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 8)) {
+  color: #CCCD18
+}
+@NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 9)) {
+  color: #CD5C5C 
+}
+@NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 10)) {
+  color: #F08080  
+}
+@NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 11)) {
+  color: #FA8072  
+}
+@NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 12)) {
+  color: #E9967A   
+}
+@NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 13)) {
+  color: #FFA07A   
+}
+@NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 14)) {
+  color: #FF0000 
+}
+@NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 15)) {
+  color: #8B0000
+}
+@NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 16)) {
+  color: #FF00FF 
+}
+@NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 17)) {
+  color: #FF8C00 
+}
+@NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 18)) {
+  color: #FFEFD5
+}
+@NodeStyle And(HasProperty?(node, "cluster"), Equals?(Property(node, "cluster"), 19)) {
+  color: #FFE4B5 
+}
 ```
-
 ## 7. Node embedding visual
 
 ![memgraph-tutorial-example-embedding](https://public-assets.memgraph.com/node-embeddings/memgraph-tutorial-example-embedding.png)
