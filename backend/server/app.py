@@ -82,6 +82,8 @@ def parse_node(result):
             "id": result.id,
             "labels": list(result.labels),
             "username": result.properties["username"],
+            "rank": result.properties["rank"],
+            "cluster": result.properties["cluster"],
         }
     return node
 

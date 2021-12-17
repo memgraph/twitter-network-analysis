@@ -18,6 +18,7 @@ def create(created_objects: mgp.Any) -> mgp.Record():
                 "labels": [label.name for label in obj["vertex"].labels],
                 "username": obj["vertex"].properties["username"],
                 "rank": obj["vertex"].properties["rank"],
+                "cluster": obj["vertex"].properties["cluster"],
             }
             created_objects_info["vertices"].append(created_object)
         else:
