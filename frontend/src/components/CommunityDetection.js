@@ -2,7 +2,7 @@ import React from 'react';
 import * as d3 from "d3";
 import io from "socket.io-client"
 
-var socket = io("http://localhost:5000/", { transports: ["polling"] })
+var socket = io("http://localhost:5000/", { transports: ["websocket", "polling"] })
 var node;
 var link;
 var simulation;
@@ -96,8 +96,6 @@ export default class CommunityDetection extends React.Component {
 
             // filter new edges to have only the ones that have source and target node
             var filteredLinks = newLinks.filter((link) => {
-                console.log("source = " + link.source.toString())
-                console.log("target = " + link.target.toString())
                 return (
                     updatedNodes.find((node) => node.id === link.source) &&
                     updatedNodes.find((node) => node.id === link.target)
@@ -106,7 +104,6 @@ export default class CommunityDetection extends React.Component {
 
             // get all edges (old + new)
             var updatedLinks = currentLinks.concat(filteredLinks)
-            console.log("Updated edges: " + updatedLinks)
 
             // set source and target to appropriate node -> they exists since we filtered the edges
             updatedLinks.forEach((link) => {
@@ -198,11 +195,7 @@ export default class CommunityDetection extends React.Component {
                 d3.forceY().strength(0.05)
             )
             .force("charge", d3.forceManyBody())
-            .force("center", d3.forceCenter(width / 2, height / 2))
-            .force(
-                "collide",
-                d3.forceCollide().radius((d) => (d.rank * 1500))
-            );
+            .force("center", d3.forceCenter(width / 2, height / 2));
 
         link = svg.append("g")
             .attr('stroke', 'black')
@@ -219,11 +212,10 @@ export default class CommunityDetection extends React.Component {
             .data(nodes)
             .join("circle")
             .attr("r", function (d) {
-                return d.rank * 1000;
+                return 7;
             })
             .attr("class", "node")
             .attr('fill', function (d) {
-                console.log(d.cluster)
                 if (!clusterColors.hasOwnProperty(d.cluster)) {
                     clusterColors[d.cluster] = "#" + Math.floor(Math.random() * 16777215).toString(16)
                     clusters.push(d.cluster)
@@ -234,7 +226,7 @@ export default class CommunityDetection extends React.Component {
                 tooltip.text(d.srcElement["__data__"]["username"])
                 tooltip.style("visibility", "visible")
             })
-            .on("mousemove", function (event, d) { return tooltip.style("top", (event.y - 15) + "px").style("left", (event.x + 15) + "px"); })
+            .on("mousemove", function (event, d) { return tooltip.style("top", (event.y - 10) + "px").style("left", (event.x + 10) + "px"); })
             .on("mouseout", function (event, d) { return tooltip.style("visibility", "hidden"); })
             .call(this.drag(simulation));
 
@@ -269,10 +261,9 @@ export default class CommunityDetection extends React.Component {
             .enter()
             .append('circle')
             .attr("r", function (d) {
-                return d.rank * 1000;
+                return 7;
             })
             .attr('fill', function (d) {
-                console.log(d.cluster)
                 if (!clusterColors.hasOwnProperty(d.cluster)) {
                     clusterColors[d.cluster] = "#" + Math.floor(Math.random() * 16777215).toString(16)
                     clusters.push(d.cluster)
@@ -283,7 +274,7 @@ export default class CommunityDetection extends React.Component {
                 tooltip.text(d.srcElement["__data__"]["username"])
                 tooltip.style("visibility", "visible")
             })
-            .on("mousemove", function (event, d) { return tooltip.style("top", (event.y - 15) + "px").style("left", (event.x + 15) + "px"); })
+            .on("mousemove", function (event, d) { return tooltip.style("top", (event.y - 10) + "px").style("left", (event.x + 10) + "px"); })
             .on("mouseout", function (event, d) { return tooltip.style("visibility", "hidden"); })
             .call(this.drag())
             .merge(node);
@@ -309,16 +300,14 @@ export default class CommunityDetection extends React.Component {
                 .nodes(nodes)
                 .force('link', d3.forceLink(links).id(function (n) { return n.id; }))
                 .force(
-                    "x",
-                    d3.forceX().strength(0.05)
-                )
-                .force(
-                    "y",
-                    d3.forceY().strength(0.05)
-                )
-                .force(
-                    "collide",
-                    d3.forceCollide().radius((d) => (d.rank * 1500))
+                    'collide',
+                    d3
+                        .forceCollide()
+                        .strength(1)
+                        .radius(function (d) {
+                            return 20;
+                        })
+                        .iterations(1),
                 )
                 .force('charge', d3.forceManyBody())
                 .force('center', d3.forceCenter(width / 2, height / 2));
