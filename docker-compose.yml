@@ -90,3 +90,15 @@ services:
       - kafka
     networks:
       - app-tier
+
+  frontend-app:
+    build: ./frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend-app
+    networks:
+      - app-tier
