@@ -231,7 +231,7 @@ export default class CommunityDetection extends React.Component {
                 return clusterColors[d.cluster]
             })
             .on("mouseover", function (d) {
-                tooltip.text(d.srcElement["__data__"]["cluster"])
+                tooltip.text(d.srcElement["__data__"]["username"])
                 tooltip.style("visibility", "visible")
             })
             .on("mousemove", function (event, d) { return tooltip.style("top", (event.y - 15) + "px").style("left", (event.x + 15) + "px"); })
@@ -280,7 +280,7 @@ export default class CommunityDetection extends React.Component {
                 return clusterColors[d.cluster]
             })
             .on("mouseover", function (d) {
-                tooltip.text(d.srcElement["__data__"]["cluster"] + " " + d.srcElement["__data__"]["username"])
+                tooltip.text(d.srcElement["__data__"]["username"])
                 tooltip.style("visibility", "visible")
             })
             .on("mousemove", function (event, d) { return tooltip.style("top", (event.y - 15) + "px").style("left", (event.x + 15) + "px"); })
