@@ -189,10 +189,20 @@ export default class CommunityDetection extends React.Component {
         simulation = d3
             .forceSimulation(nodes)
             .force('link', d3.forceLink(links).id(function (n) { return n.id; }))
-            .force('x', d3.forceX().strength(0.05))
-            .force('y', d3.forceY().strength(0.05))
-            .force("charge", d3.forceManyBody().strength(1))
-            .force("center", d3.forceCenter(width / 2, height / 2));
+            .force(
+                "x",
+                d3.forceX().strength(0.05)
+            )
+            .force(
+                "y",
+                d3.forceY().strength(0.05)
+            )
+            .force("charge", d3.forceManyBody())
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force(
+                "collide",
+                d3.forceCollide().radius((d) => (d.rank * 1500))
+            );
 
         link = svg.append("g")
             .attr('stroke', 'black')
@@ -240,6 +250,15 @@ export default class CommunityDetection extends React.Component {
     }
 
     updateGraph(nodes, links) {
+
+        // Update existing nodes
+        node.selectAll('circle').style('fill', function (d) {
+            if (!clusterColors.hasOwnProperty(d.cluster)) {
+                clusterColors[d.cluster] = "#" + Math.floor(Math.random() * 16777215).toString(16);
+                clusters.push(d.cluster);
+            }
+            return clusterColors[d.cluster];
+        });
 
         // Remove old nodes
         node.exit().remove();
@@ -291,11 +310,11 @@ export default class CommunityDetection extends React.Component {
                 .force('link', d3.forceLink(links).id(function (n) { return n.id; }))
                 .force(
                     "x",
-                    d3.forceX().x((d) => d.x)
+                    d3.forceX().strength(0.05)
                 )
                 .force(
                     "y",
-                    d3.forceY().y((d) => d.y)
+                    d3.forceY().strength(0.05)
                 )
                 .force(
                     "collide",
