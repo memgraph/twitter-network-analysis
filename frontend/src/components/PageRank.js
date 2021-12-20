@@ -1,7 +1,7 @@
 import React from 'react';
 import * as d3 from "d3";
 import io from "socket.io-client"
-var socket = io("http://localhost:5000/", { transports: ["polling"] })
+var socket = io("http://localhost:5000/", { transports: ["websocket", "polling"] })
 
 var node;
 var link;
@@ -210,12 +210,7 @@ export default class PageRank extends React.Component {
                 d3.forceY().strength(0.05)
             )
             .force("charge", d3.forceManyBody())
-            .force("center", d3.forceCenter(width / 2, height / 2))
-            .force(
-                "collide",
-                d3.forceCollide().radius((d) => (d.rank * 1500))
-            );
-
+            .force("center", d3.forceCenter(width / 2, height / 2));
 
         link = svg.append("g")
             .attr('stroke', 'black')
@@ -299,16 +294,14 @@ export default class PageRank extends React.Component {
                 .nodes(nodes)
                 .force('link', d3.forceLink(links).id(function (n) { return n.id; }))
                 .force(
-                    "x",
-                    d3.forceX().strength(0.05)
-                )
-                .force(
-                    "y",
-                    d3.forceY().strength(0.05)
-                )
-                .force(
-                    "collide",
-                    d3.forceCollide().radius((d) => (d.rank * 1500))
+                    'collide',
+                    d3
+                        .forceCollide()
+                        .strength(1)
+                        .radius(function (d) {
+                            return d.rank * 1500;
+                        })
+                        .iterations(1),
                 )
                 .force('charge', d3.forceManyBody())
                 .force('center', d3.forceCenter(width / 2, height / 2));
