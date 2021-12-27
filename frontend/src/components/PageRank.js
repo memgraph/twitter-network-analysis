@@ -10,6 +10,10 @@ var width = 900;
 var height = 500;
 var tooltip;
 
+/**
+ * Component that draws nodes and edges in real-time. 
+ * Size of each node is proportional to the value of its rank property.
+ */
 export default class PageRank extends React.Component {
 
     constructor(props) {
@@ -20,7 +24,6 @@ export default class PageRank extends React.Component {
             links: [],
             isInitialized: false
         }
-
     }
 
 
@@ -61,7 +64,7 @@ export default class PageRank extends React.Component {
     }
 
     componentDidMount() {
-        this.drawGraph(this.state.nodes, this.state.links)
+        this.initializeGraph(this.state.nodes, this.state.links)
         this.firstRequest()
         socket.on("connect", () => {
             socket.emit('consumer')
@@ -107,8 +110,10 @@ export default class PageRank extends React.Component {
             this.setState({ nodes: updatedNodes, links: updatedLinks })
         });
 
-        this.setState({ isInitialized: true })
+    }
 
+    componentDidUpdate() {
+        this.updateGraph(this.state.nodes, this.state.links)
     }
 
     drag() {
@@ -180,24 +185,28 @@ export default class PageRank extends React.Component {
             .style("visibility", "hidden"));
     }
 
-
-    drawGraph(nodes, links) {
-        // const width = parseInt(d3.select("body").select("svg").style("width"), 10)
-        // const height = parseInt(d3.select("body").select("svg").style("height"), 10)
-
+    /**
+     * Method that initializes everything that will be drawn.
+     */
+    initializeGraph(nodes, links) {
         var svg = d3.select(this.myReference.current);
+
+        // erase everything
         svg.selectAll("*").remove();
 
+        // initialize zoom
         var zoom = d3.zoom()
             .on("zoom", this.handleZoom)
         this.initZoom(zoom)
         d3.select("svg")
             .call(zoom)
 
+        // initialize tooltip
         tooltip = this.createTooltip()
 
         this.defineGradient(svg)
 
+        // set up simulation, link and node
         simulation = d3
             .forceSimulation(nodes)
             .force('link', d3.forceLink(links).id(function (n) { return n.id; }))
@@ -250,6 +259,9 @@ export default class PageRank extends React.Component {
         });
     }
 
+    /**
+     * Method that is called on every new node/edge and draws updated graph.
+     */
     updateGraph(nodes, links) {
 
         // Remove old nodes
@@ -289,6 +301,7 @@ export default class PageRank extends React.Component {
             .attr('stroke-width', 1.5)
             .merge(link);
 
+        // Set up simulation on new nodes and edges
         try {
             simulation
                 .nodes(nodes)
@@ -297,11 +310,9 @@ export default class PageRank extends React.Component {
                     'collide',
                     d3
                         .forceCollide()
-                        .strength(1)
                         .radius(function (d) {
                             return d.rank * 1500;
                         })
-                        .iterations(1),
                 )
                 .force('charge', d3.forceManyBody())
                 .force('center', d3.forceCenter(width / 2, height / 2));
@@ -321,9 +332,6 @@ export default class PageRank extends React.Component {
     }
 
     render() {
-        if (this.state.isInitialized)
-            this.updateGraph(this.state.nodes, this.state.links)
-
         return (<div>
             <h1>PageRank</h1>
             <p>Number of users that retweeted so far: {this.state.nodes.length}</p>

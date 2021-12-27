@@ -9,10 +9,11 @@ var simulation;
 var width = 900;
 var height = 500;
 var tooltip;
-var clusters = [];
 var clusterColors = {};
 
-
+/**
+ * Component that draws nodes and edges as a part of different communities in real-time.
+ */
 export default class CommunityDetection extends React.Component {
 
     constructor(props) {
@@ -20,10 +21,8 @@ export default class CommunityDetection extends React.Component {
         this.myReference = React.createRef();
         this.state = {
             nodes: [],
-            links: [],
-            isInitialized: false
+            links: []
         }
-
     }
 
 
@@ -40,8 +39,6 @@ export default class CommunityDetection extends React.Component {
             .then((res) => res.json())
             .then((result) => console.log(result))
     }
-
-
 
     transformData(data) {
         var nodes = data.vertices.map((vertex) => {
@@ -64,8 +61,9 @@ export default class CommunityDetection extends React.Component {
 
         return { nodes, links };
     }
+
     componentDidMount() {
-        this.drawGraph(this.state.nodes, this.state.links)
+        this.initializeGraph(this.state.nodes, this.state.links)
         this.firstRequest();
 
         socket.on("connect", () => {
@@ -110,14 +108,14 @@ export default class CommunityDetection extends React.Component {
                 link.source = this.findNode(link.source, updatedNodes)
                 link.target = this.findNode(link.target, updatedNodes)
             })
-
-
             // update state with new nodes and edges
             this.setState({ nodes: updatedNodes, links: updatedLinks })
         });
 
-        this.setState({ isInitialized: true })
+    }
 
+    componentDidUpdate() {
+        this.updateGraph(this.state.nodes, this.state.links)
     }
 
     drag() {
@@ -167,22 +165,25 @@ export default class CommunityDetection extends React.Component {
             .style("visibility", "hidden"));
     }
 
-
-    drawGraph(nodes, links) {
-        // const width = parseInt(d3.select("body").select("svg").style("width"), 10)
-        // const height = parseInt(d3.select("body").select("svg").style("height"), 10)
-
+    /**
+     * Method that initializes everything that will be drawn.
+     */
+    initializeGraph(nodes, links) {
         var svg = d3.select(this.myReference.current);
+        // erase everything
         svg.selectAll("*").remove();
 
+        // initialize zoom
         var zoom = d3.zoom()
             .on("zoom", this.handleZoom)
         this.initZoom(zoom)
         d3.select("svg")
             .call(zoom)
 
+        // initialize tooltip
         tooltip = this.createTooltip()
 
+        // set up simulation, link and node
         simulation = d3
             .forceSimulation(nodes)
             .force('link', d3.forceLink(links).id(function (n) { return n.id; }))
@@ -218,7 +219,6 @@ export default class CommunityDetection extends React.Component {
             .attr('fill', function (d) {
                 if (!clusterColors.hasOwnProperty(d.cluster)) {
                     clusterColors[d.cluster] = "#" + Math.floor(Math.random() * 16777215).toString(16)
-                    clusters.push(d.cluster)
                 }
                 return clusterColors[d.cluster]
             })
@@ -241,13 +241,15 @@ export default class CommunityDetection extends React.Component {
         });
     }
 
+    /**
+     * Method that is called on every new node/edge and draws updated graph.
+     */
     updateGraph(nodes, links) {
 
         // Update existing nodes
         node.selectAll('circle').style('fill', function (d) {
             if (!clusterColors.hasOwnProperty(d.cluster)) {
                 clusterColors[d.cluster] = "#" + Math.floor(Math.random() * 16777215).toString(16);
-                clusters.push(d.cluster);
             }
             return clusterColors[d.cluster];
         });
@@ -266,7 +268,6 @@ export default class CommunityDetection extends React.Component {
             .attr('fill', function (d) {
                 if (!clusterColors.hasOwnProperty(d.cluster)) {
                     clusterColors[d.cluster] = "#" + Math.floor(Math.random() * 16777215).toString(16)
-                    clusters.push(d.cluster)
                 }
                 return clusterColors[d.cluster]
             })
@@ -295,6 +296,7 @@ export default class CommunityDetection extends React.Component {
             .attr('stroke-width', 1.5)
             .merge(link);
 
+        // Set up simulation on new nodes and edges
         try {
             simulation
                 .nodes(nodes)
@@ -303,11 +305,9 @@ export default class CommunityDetection extends React.Component {
                     'collide',
                     d3
                         .forceCollide()
-                        .strength(1)
                         .radius(function (d) {
                             return 20;
                         })
-                        .iterations(1),
                 )
                 .force('charge', d3.forceManyBody())
                 .force('center', d3.forceCenter(width / 2, height / 2));
@@ -327,9 +327,6 @@ export default class CommunityDetection extends React.Component {
     }
 
     render() {
-        if (this.state.isInitialized)
-            this.updateGraph(this.state.nodes, this.state.links)
-
         return (<div>
             <h1>Community Detection</h1>
             <p>Number of users that retweeted so far: {this.state.nodes.length}</p>
@@ -341,9 +338,7 @@ export default class CommunityDetection extends React.Component {
                     marginLeft: "0px",
                     background: "white"
                 }}></svg></div>
-
         );
-
     }
 
 }
