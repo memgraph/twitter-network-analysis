@@ -2,7 +2,6 @@ import React from 'react';
 import * as d3 from "d3";
 import io from "socket.io-client"
 
-var socket = io("http://localhost:5000/", { transports: ["websocket", "polling"] })
 var node;
 var link;
 var simulation;
@@ -23,6 +22,7 @@ export default class CommunityDetection extends React.Component {
             nodes: [],
             links: []
         }
+        this.socket = io("http://localhost:5000/", { transports: ["websocket", "polling"] })
     }
 
 
@@ -66,18 +66,18 @@ export default class CommunityDetection extends React.Component {
         this.initializeGraph(this.state.nodes, this.state.links)
         this.firstRequest();
 
-        socket.on("connect", () => {
-            socket.emit('consumer')
-            console.log("Connected to socket ", socket.id)
+        this.socket.on("connect", () => {
+            this.socket.emit('consumer')
+            console.log("Connected to socket ", this.socket.id)
         });
 
-        socket.on("connect_error", (err) => { console.log(err) });
+        this.socket.on("connect_error", (err) => { console.log(err) });
 
-        socket.on("disconnect", () => {
+        this.socket.on("disconnect", () => {
             console.log("Disconnected from socket.")
         });
 
-        socket.on("consumer", (msg) => {
+        this.socket.on("consumer", (msg) => {
 
             console.log('Received a message from the WebSocket service: ', msg.data);
 
@@ -116,6 +116,11 @@ export default class CommunityDetection extends React.Component {
 
     componentDidUpdate() {
         this.updateGraph(this.state.nodes, this.state.links)
+    }
+
+    componentWillUnmount() {
+        this.socket.emit('disconnect');
+        this.socket.disconnect();
     }
 
     drag() {
