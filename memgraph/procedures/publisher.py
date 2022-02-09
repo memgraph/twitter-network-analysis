@@ -36,4 +36,44 @@ def create(created_objects: mgp.Any) -> mgp.Record():
         "created_objects", json.dumps(created_objects_info).encode("utf8")
     )
 
-    return None
+    return mgp.Record()
+
+
+@mgp.read_proc
+def update_rank(node: mgp.Vertex, rank: float) -> mgp.Record():
+    updated_objects_info = {"vertices": [], "edges": []}
+
+    updated_object = {
+        "id": node.id,
+        "labels": [label.name for label in node.labels],
+        "username": node.properties["username"],
+        "rank": rank,
+    }
+    updated_objects_info["vertices"].append(updated_object)
+
+    kafka_producer = KafkaProducer(bootstrap_servers=KAFKA_IP + ":" + KAFKA_PORT)
+    kafka_producer.send(
+        "created_objects", json.dumps(updated_objects_info).encode("utf8")
+    )
+
+    return mgp.Record()
+
+
+@mgp.read_proc
+def update_cluster(node: mgp.Vertex, community_id: int) -> mgp.Record():
+    updated_objects_info = {"vertices": [], "edges": []}
+
+    updated_object = {
+        "id": node.id,
+        "labels": [label.name for label in node.labels],
+        "username": node.properties["username"],
+        "cluster": community_id,
+    }
+    updated_objects_info["vertices"].append(updated_object)
+
+    kafka_producer = KafkaProducer(bootstrap_servers=KAFKA_IP + ":" + KAFKA_PORT)
+    kafka_producer.send(
+        "created_objects", json.dumps(updated_objects_info).encode("utf8")
+    )
+
+    return mgp.Record()
