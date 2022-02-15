@@ -48,7 +48,6 @@ export default class PageRank extends React.Component {
                 type: vertex.labels[0],
                 username: vertex.username,
                 rank: vertex.rank,
-                cluster: vertex.cluster,
             };
         });
         var links = data.edges.map((edge) => {
@@ -62,6 +61,21 @@ export default class PageRank extends React.Component {
 
         return { nodes, links };
     }
+
+    isRankUpdated(msg) {
+        let nodes = msg.data.vertices
+        if(nodes.length !== 1)
+            return false
+        return !("cluster" in nodes["0"])
+    }
+
+    isClusterUpdated(msg) {
+        let nodes = msg.data.vertices
+        if(nodes.length !== 1)
+            return false
+        return !("rank" in nodes["0"])
+    }
+
 
     componentDidMount() {
         this.initializeGraph(this.state.nodes, this.state.links)
@@ -79,16 +93,29 @@ export default class PageRank extends React.Component {
         this.socket.on("consumer", (msg) => {
             console.log('Received a message from the WebSocket service: ', msg.data);
 
-            // get old nodes
-            var currentNodes = this.state.nodes
-            // get new nodes
-            var newNodes = this.transformData(msg.data).nodes
-            // get all nodes (old + new)
-            var updatedNodes = currentNodes.concat(newNodes)
-            // get old edges
-            var currentLinks = this.state.links
-            // get new edges
-            var newLinks = this.transformData(msg.data).links
+            // ignore cluster updates
+            if(this.isClusterUpdated(msg))
+                return
+
+            var oldNodes = this.state.nodes
+            var oldLinks = this.state.links
+            var updatedNodes = []
+
+            var myData = this.transformData(msg.data)
+            var newNodes = myData.nodes
+            var newLinks = myData.links
+
+            if(this.isRankUpdated(msg)) {
+                var newNode = newNodes["0"]
+                var value = oldNodes.find((node) => node.id === newNode.id)
+                if(typeof value === 'undefined')
+                    return
+                value.rank = newNode.rank
+                updatedNodes = oldNodes
+            }
+            else {
+                updatedNodes = oldNodes.concat(newNodes)
+            }
 
             // filter new edges to have only the ones that have source and target node
             var filteredLinks = newLinks.filter((link) => {
@@ -98,7 +125,7 @@ export default class PageRank extends React.Component {
                 );
             })
             // get all edges (old + new)
-            var updatedLinks = currentLinks.concat(filteredLinks)
+            var updatedLinks = oldLinks.concat(filteredLinks)
 
             // set source and target to appropriate node -> they exists since we filtered the edges
             updatedLinks.forEach((link) => {
