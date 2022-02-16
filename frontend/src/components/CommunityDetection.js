@@ -22,7 +22,7 @@ export default class CommunityDetection extends React.Component {
             nodes: [],
             links: []
         }
-        this.socket = io("http://localhost:5000/", { transports: ["websocket", "polling"] })
+        this.socket = io("http://localhost:5000/", { transports: ["websocket"] })
     }
 
 
@@ -40,7 +40,6 @@ export default class CommunityDetection extends React.Component {
             .then((result) => console.log(result))
     }
 
-    // create dictionaries out of objects
     transformData(data) {
         var nodes = data.vertices.map((vertex) => {
             return {
@@ -81,7 +80,7 @@ export default class CommunityDetection extends React.Component {
         this.firstRequest();
 
         this.socket.on("connect", () => {
-            this.socket.emit('consumer')
+            //this.socket.emit('consumer')
             console.log("Connected to socket ", this.socket.id)
         });
 
@@ -95,10 +94,6 @@ export default class CommunityDetection extends React.Component {
 
             console.log('Received a message from the WebSocket service: ', msg.data);
 
-            // ignore rank updates
-            if(this.isRankUpdated(msg))
-                return
-
             var oldNodes = this.state.nodes
             var oldLinks = this.state.links
             var updatedNodes = []
@@ -106,17 +101,21 @@ export default class CommunityDetection extends React.Component {
             var myData = this.transformData(msg.data)
             var newNodes = myData.nodes
             var newLinks = myData.links
+            var newNode = newNodes["0"]
 
-            if(this.isClusterUpdated(msg)) {
-                var newNode = newNodes["0"]
-                var value = oldNodes.find((node) => node.id === newNode.id)
-                if(typeof value === 'undefined')
-                    return
-                value.cluster = newNode.cluster
-                updatedNodes = oldNodes
+            // ignore rank updates
+            if(this.isRankUpdated(msg)){
+                return
+            }
+                
+            // if cluster update or simple msg
+            var value = oldNodes.find((node) => node.id === newNode.id)
+            if(typeof value === 'undefined'){
+                updatedNodes = oldNodes.concat(newNodes)
             }
             else {
-                updatedNodes = oldNodes.concat(newNodes)
+                value.cluster = newNode.cluster
+                updatedNodes = oldNodes
             }
 
 
@@ -129,7 +128,7 @@ export default class CommunityDetection extends React.Component {
             })
 
             // get all edges (old + new)
-            var updatedLinks = oldLinks.concat(filteredLinks)
+            var updatedLinks = oldLinks.concat(filteredLinks) 
 
             // set source and target to appropriate node -> they exists since we filtered the edges
             updatedLinks.forEach((link) => {
@@ -258,7 +257,7 @@ export default class CommunityDetection extends React.Component {
                 return clusterColors[key]
             })
             .on("mouseover", function (d) {
-                tooltip.text(d.srcElement["__data__"]["cluster"])
+                tooltip.text(d.srcElement["__data__"]["username"])
                 tooltip.style("visibility", "visible")
             })
             .on("mousemove", function (event, d) { return tooltip.style("top", (event.y - 10) + "px").style("left", (event.x + 10) + "px"); })
@@ -311,7 +310,7 @@ export default class CommunityDetection extends React.Component {
                 return clusterColors[key]
             })
             .on("mouseover", function (d) {
-                tooltip.text(d.srcElement["__data__"]["cluster"])
+                tooltip.text(d.srcElement["__data__"]["username"])
                 tooltip.style("visibility", "visible")
             })
             .on("mousemove", function (event, d) { return tooltip.style("top", (event.y - 10) + "px").style("left", (event.x + 10) + "px"); })
