@@ -93,10 +93,6 @@ export default class PageRank extends React.Component {
         this.socket.on("consumer", (msg) => {
             console.log('Received a message from the WebSocket service: ', msg.data);
 
-            // ignore cluster updates
-            if(this.isClusterUpdated(msg))
-                return
-
             var oldNodes = this.state.nodes
             var oldLinks = this.state.links
             var updatedNodes = []
@@ -104,17 +100,21 @@ export default class PageRank extends React.Component {
             var myData = this.transformData(msg.data)
             var newNodes = myData.nodes
             var newLinks = myData.links
+            var newNode = newNodes["0"]
 
-            if(this.isRankUpdated(msg)) {
-                var newNode = newNodes["0"]
-                var value = oldNodes.find((node) => node.id === newNode.id)
-                if(typeof value === 'undefined')
-                    return
-                value.rank = newNode.rank
-                updatedNodes = oldNodes
+            // ignore cluster updates
+            if(this.isClusterUpdated(msg))
+                return
+
+           
+            // if rank update or simple msg
+            var value = oldNodes.find((node) => node.id === newNode.id)
+            if(typeof value === 'undefined'){
+                updatedNodes = oldNodes.concat(newNodes)
             }
             else {
-                updatedNodes = oldNodes.concat(newNodes)
+                value.rank = newNode.rank
+                updatedNodes = oldNodes
             }
 
             // filter new edges to have only the ones that have source and target node
@@ -273,7 +273,7 @@ export default class PageRank extends React.Component {
             .attr("class", "node")
             .attr('fill', 'url(#gradient)')
             .on("mouseover", function (d) {
-                tooltip.text(d.srcElement["__data__"]["username"])
+                tooltip.text(d.srcElement["__data__"]["rank"])
                 tooltip.style("visibility", "visible")
             })
             .on("mousemove", function (event, d) { return tooltip.style("top", (event.y - 15) + "px").style("left", (event.x + 15) + "px"); })
@@ -309,7 +309,7 @@ export default class PageRank extends React.Component {
             })
             .attr('fill', 'url(#gradient)')
             .on("mouseover", function (d) {
-                tooltip.text(d.srcElement["__data__"]["username"])
+                tooltip.text(d.srcElement["__data__"]["rank"])
                 tooltip.style("visibility", "visible")
             })
             .on("mousemove", function (event, d) { return tooltip.style("top", (event.y - 15) + "px").style("left", (event.x + 15) + "px"); })
