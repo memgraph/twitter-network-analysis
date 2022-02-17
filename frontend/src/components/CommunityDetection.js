@@ -280,24 +280,15 @@ export default class CommunityDetection extends React.Component {
      */
     updateGraph(nodes, links) {
 
-        // Update existing nodes
-        node.selectAll('circle').style('fill', function (d) {
-            let cluster = d.cluster
-            let key = cluster.toString()
-            if (!(key in clusterColors)) {
-                clusterColors[key] = "#" + Math.floor(Math.random() * 16777215).toString(16);
-            }
-            return clusterColors[key];
-        });
-
         // Remove old nodes
         node.exit().remove();
 
         // Add new nodes
-        node = node.data(nodes, (d) => d.id);
+        node = node.data(nodes, (d) => d.id); //why
         node = node
             .enter()
             .append('circle')
+            .merge(node)
             .attr("r", function (d) {
                 return 7;
             })
@@ -315,8 +306,7 @@ export default class CommunityDetection extends React.Component {
             })
             .on("mousemove", function (event, d) { return tooltip.style("top", (event.y - 10) + "px").style("left", (event.x + 10) + "px"); })
             .on("mouseout", function (event, d) { return tooltip.style("visibility", "hidden"); })
-            .call(this.drag())
-            .merge(node);
+            .call(this.drag());
 
         link = link.data(links, (d) => {
             return d.source.id + '-' + d.target.id;
@@ -328,11 +318,11 @@ export default class CommunityDetection extends React.Component {
         link = link
             .enter()
             .append('line')
+            .merge(link)
             .attr('id', (d) => d.source.id + '-' + d.target.id)
             .attr('stroke', 'black')
             .attr('stroke-opacity', 0.8)
-            .attr('stroke-width', 1.5)
-            .merge(link);
+            .attr('stroke-width', 1.5);
 
         // Set up simulation on new nodes and edges
         try {
