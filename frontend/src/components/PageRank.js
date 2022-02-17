@@ -5,6 +5,7 @@ import io from "socket.io-client"
 
 var node;
 var link;
+var forceCollide;
 var simulation;
 var width = 900;
 var height = 500;
@@ -237,11 +238,15 @@ export default class PageRank extends React.Component {
         tooltip = this.createTooltip()
 
         this.defineGradient(svg)
+        forceCollide = d3.forceCollide().strength(1).radius(function (d) {
+            return d.rank * 1500;
+        }).iterations(1)
 
-        // set up simulation, link and node
         simulation = d3
-            .forceSimulation(nodes)
+            .forceSimulation(nodes) // creates new simulation with no forces
             .force('link', d3.forceLink(links).id(function (n) { return n.id; }))
+            .force("charge", d3.forceManyBody())
+            .force("center", d3.forceCenter(width / 2, height / 2))
             .force(
                 "x",
                 d3.forceX().strength(0.05)
@@ -249,9 +254,16 @@ export default class PageRank extends React.Component {
             .force(
                 "y",
                 d3.forceY().strength(0.05)
-            )
-            .force("charge", d3.forceManyBody())
-            .force("center", d3.forceCenter(width / 2, height / 2));
+            );
+
+        simulation.on("tick", () => {
+            node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+            link
+                .attr('x1', (d) => d.source.x)
+                .attr('y1', (d) => d.source.y)
+                .attr('x2', (d) => d.target.x)
+                .attr('y2', (d) => d.target.y);
+        });
 
         link = svg.append("g")
             .attr('stroke', 'black')
@@ -273,7 +285,7 @@ export default class PageRank extends React.Component {
             .attr("class", "node")
             .attr('fill', 'url(#gradient)')
             .on("mouseover", function (d) {
-                tooltip.text(d.srcElement["__data__"]["rank"])
+                tooltip.text(d.srcElement["__data__"]["username"])
                 tooltip.style("visibility", "visible")
             })
             .on("mousemove", function (event, d) { return tooltip.style("top", (event.y - 15) + "px").style("left", (event.x + 15) + "px"); })
@@ -281,14 +293,7 @@ export default class PageRank extends React.Component {
             .call(this.drag(simulation));
 
 
-        simulation.on("tick", () => {
-            node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
-            link
-                .attr('x1', (d) => d.source.x)
-                .attr('y1', (d) => d.source.y)
-                .attr('x2', (d) => d.target.x)
-                .attr('y2', (d) => d.target.y);
-        });
+
     }
 
     /**
@@ -296,26 +301,27 @@ export default class PageRank extends React.Component {
      */
     updateGraph(nodes, links) {
 
-        // Remove old nodes
+        // Remove anything that was removed from nodes array
         node.exit().remove();
 
         // Add new nodes
         node = node.data(nodes, (d) => d.id);
+        // give attributes to all nodes that enter -> new ones + merge - update the existing DOM elements
         node = node
             .enter()
             .append('circle')
+            .merge(node) //returns a brand new selection that contains both enter and update selection
             .attr("r", function (d) {
                 return d.rank * 1000;
             })
             .attr('fill', 'url(#gradient)')
             .on("mouseover", function (d) {
-                tooltip.text(d.srcElement["__data__"]["rank"])
+                tooltip.text(d.srcElement["__data__"]["username"])
                 tooltip.style("visibility", "visible")
             })
             .on("mousemove", function (event, d) { return tooltip.style("top", (event.y - 15) + "px").style("left", (event.x + 15) + "px"); })
             .on("mouseout", function (event, d) { return tooltip.style("visibility", "hidden"); })
-            .call(this.drag())
-            .merge(node);
+            .call(this.drag());
 
         link = link.data(links, (d) => {
             return d.source.id + '-' + d.target.id;
@@ -327,11 +333,13 @@ export default class PageRank extends React.Component {
         link = link
             .enter()
             .append('line')
+            .merge(link)
             .attr('id', (d) => d.source.id + '-' + d.target.id)
             .attr('stroke', 'black')
             .attr('stroke-opacity', 0.6)
-            .attr('stroke-width', 1.5)
-            .merge(link);
+            .attr('stroke-width', 1.5);
+
+
 
         // Set up simulation on new nodes and edges
         try {
@@ -340,11 +348,7 @@ export default class PageRank extends React.Component {
                 .force('link', d3.forceLink(links).id(function (n) { return n.id; }))
                 .force(
                     'collide',
-                    d3
-                        .forceCollide()
-                        .radius(function (d) {
-                            return d.rank * 1500;
-                        })
+                    forceCollide
                 )
                 .force('charge', d3.forceManyBody())
                 .force('center', d3.forceCenter(width / 2, height / 2));
