@@ -26,18 +26,21 @@ def run(memgraph):
             """CREATE TRIGGER pagerank_trigger 
                BEFORE COMMIT 
                EXECUTE CALL pagerank_online.update(createdVertices, createdEdges, deletedVertices, deletedEdges) YIELD *
-               SET node.rank = rank;"""
+               SET node.rank = rank
+               CALL publisher.update_rank(node, rank);"""
         )
 
         log.info("Setting up community detection")
         memgraph.execute(
-            "CALL community_detection_online.set(False, False, 0.7, 4.0, 0.1, 'weight', 1.0, 100, 5) YIELD *;")
+            "CALL community_detection_online.set(False, False, 0.7, 4.0, 0.1, 'weight', 1.0, 100, 5) YIELD *;"
+        )
         memgraph.execute(
             """CREATE TRIGGER labelrankt_trigger 
                BEFORE COMMIT
                EXECUTE CALL community_detection_online.update(createdVertices, createdEdges, updatedVertices, updatedEdges, deletedVertices, deletedEdges) 
                YIELD node, community_id
-               SET node.cluster=community_id;"""
+               SET node.cluster=community_id
+               CALL publisher.update_cluster(node, community_id);"""
         )
 
         log.info("Creating stream connections on Memgraph")

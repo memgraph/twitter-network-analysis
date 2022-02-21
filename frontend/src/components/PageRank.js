@@ -5,9 +5,11 @@ import io from "socket.io-client"
 
 var node;
 var link;
+var forceCollide;
+var forceLink;
 var simulation;
-var width = 900;
-var height = 500;
+var width = 1000;
+var height = 700;
 var tooltip;
 
 /**
@@ -26,19 +28,14 @@ export default class PageRank extends React.Component {
         this.socket = io("http://localhost:5000/", { transports: ["websocket", "polling"] })
     }
 
-
-    findNode(id, updatedNodes) {
-        updatedNodes.forEach((node) => {
-            if (node.id === id)
-                return node
-        })
-        return id
-    }
-
-    firstRequest() {
-        fetch("http://localhost:5000/api/graph")
-            .then((res) => res.json())
-            .then((result) => console.log(result))
+    async firstRequest() {
+        let response = await fetch("http://localhost:5000/api/graph")
+        
+        if (!response.ok){
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        else 
+            console.log(response)
     }
 
     transformData(data) {
@@ -48,7 +45,6 @@ export default class PageRank extends React.Component {
                 type: vertex.labels[0],
                 username: vertex.username,
                 rank: vertex.rank,
-                cluster: vertex.cluster,
             };
         });
         var links = data.edges.map((edge) => {
@@ -63,11 +59,20 @@ export default class PageRank extends React.Component {
         return { nodes, links };
     }
 
+    isClusterUpdated(msg) {
+        let nodes = msg.data.vertices
+        if(nodes.length !== 1)
+            return false
+        return !("rank" in nodes["0"])
+    }
+
+
     componentDidMount() {
-        this.initializeGraph(this.state.nodes, this.state.links)
+        this.initializeGraph()
         this.firstRequest()
+
         this.socket.on("connect", () => {
-            this.socket.emit('consumer')
+            //this.socket.emit('consumer')
             console.log("Connected to socket ", this.socket.id)
         });
 
@@ -79,16 +84,28 @@ export default class PageRank extends React.Component {
         this.socket.on("consumer", (msg) => {
             console.log('Received a message from the WebSocket service: ', msg.data);
 
-            // get old nodes
-            var currentNodes = this.state.nodes
-            // get new nodes
-            var newNodes = this.transformData(msg.data).nodes
-            // get all nodes (old + new)
-            var updatedNodes = currentNodes.concat(newNodes)
-            // get old edges
-            var currentLinks = this.state.links
-            // get new edges
-            var newLinks = this.transformData(msg.data).links
+            var oldNodes = this.state.nodes
+            var oldLinks = this.state.links
+            var updatedNodes = []
+
+            var myData = this.transformData(msg.data)
+            var newNodes = myData.nodes
+            var newLinks = myData.links
+            var newNode = newNodes["0"]
+
+            // ignore cluster updates
+            if(this.isClusterUpdated(msg))
+                return
+
+            // if rank update or simple msg
+            var value = oldNodes.find((node) => node.id === newNode.id)
+            if(typeof value === 'undefined'){
+                updatedNodes = oldNodes.concat(newNodes)
+            }
+            else {
+                value.rank = newNode.rank
+                updatedNodes = oldNodes
+            }
 
             // filter new edges to have only the ones that have source and target node
             var filteredLinks = newLinks.filter((link) => {
@@ -97,23 +114,16 @@ export default class PageRank extends React.Component {
                     updatedNodes.find((node) => node.id === link.target)
                 );
             })
-            // get all edges (old + new)
-            var updatedLinks = currentLinks.concat(filteredLinks)
 
-            // set source and target to appropriate node -> they exists since we filtered the edges
-            updatedLinks.forEach((link) => {
-                link.source = this.findNode(link.source, updatedNodes)
-                link.target = this.findNode(link.target, updatedNodes)
-            })
+            var updatedLinks = oldLinks.concat(filteredLinks)
 
-            // update state with new nodes and edges
             this.setState({ nodes: updatedNodes, links: updatedLinks })
         });
 
     }
 
     componentDidUpdate() {
-        this.updateGraph(this.state.nodes, this.state.links)
+        this.updateGraph()
     }
 
     componentWillUnmount() {
@@ -151,12 +161,12 @@ export default class PageRank extends React.Component {
     }
 
     handleZoom(e) {
-        d3.selectAll("svg g")
+        d3.selectAll(".svg-pr g")
             .attr("transform", e.transform)
     }
 
     initZoom(zoom) {
-        d3.select('svg')
+        d3.select('.svg-pr')
             .call(zoom);
     }
 
@@ -193,28 +203,32 @@ export default class PageRank extends React.Component {
     /**
      * Method that initializes everything that will be drawn.
      */
-    initializeGraph(nodes, links) {
+    initializeGraph() {
         var svg = d3.select(this.myReference.current);
 
-        // erase everything
         svg.selectAll("*").remove();
 
-        // initialize zoom
         var zoom = d3.zoom()
             .on("zoom", this.handleZoom)
         this.initZoom(zoom)
-        d3.select("svg")
+        d3.select(".svg-pr")
             .call(zoom)
 
-        // initialize tooltip
         tooltip = this.createTooltip()
 
         this.defineGradient(svg)
 
-        // set up simulation, link and node
+        forceCollide = d3.forceCollide().strength(1).radius(function (d) {
+            return d.rank * 1500;
+        })
+
+        forceLink = d3.forceLink(this.state.links).id(function (n) { return n.id; })
+
         simulation = d3
-            .forceSimulation(nodes)
-            .force('link', d3.forceLink(links).id(function (n) { return n.id; }))
+            .forceSimulation(this.state.nodes)
+            .force('link', forceLink)
+            .force('collide', forceCollide)
+            .force("center", d3.forceCenter(width / 2, height / 2))
             .force(
                 "x",
                 d3.forceX().strength(0.05)
@@ -222,37 +236,7 @@ export default class PageRank extends React.Component {
             .force(
                 "y",
                 d3.forceY().strength(0.05)
-            )
-            .force("charge", d3.forceManyBody())
-            .force("center", d3.forceCenter(width / 2, height / 2));
-
-        link = svg.append("g")
-            .attr('stroke', 'black')
-            .attr('stroke-opacity', 0.6)
-            .selectAll('line')
-            .data(links)
-            .join('line')
-            .attr('id', (d) => d.source.id + '-' + d.target.id)
-            .attr('stroke-width', 1.5);
-
-
-        node = svg.append("g")
-            .selectAll("circle")
-            .data(nodes)
-            .join("circle")
-            .attr("r", function (d) {
-                return d.rank * 1000;
-            })
-            .attr("class", "node")
-            .attr('fill', 'url(#gradient)')
-            .on("mouseover", function (d) {
-                tooltip.text(d.srcElement["__data__"]["username"])
-                tooltip.style("visibility", "visible")
-            })
-            .on("mousemove", function (event, d) { return tooltip.style("top", (event.y - 15) + "px").style("left", (event.x + 15) + "px"); })
-            .on("mouseout", function (event, d) { return tooltip.style("visibility", "hidden"); })
-            .call(this.drag(simulation));
-
+            );
 
         simulation.on("tick", () => {
             node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
@@ -262,23 +246,23 @@ export default class PageRank extends React.Component {
                 .attr('x2', (d) => d.target.x)
                 .attr('y2', (d) => d.target.y);
         });
-    }
 
-    /**
-     * Method that is called on every new node/edge and draws updated graph.
-     */
-    updateGraph(nodes, links) {
+        link = svg.append("g")
+            .attr("class", "links")
+            .selectAll('line')
+            .data(this.state.links)
+            .join('line')
+            .attr('stroke', 'black')
+            .attr('id', (d) => d.source.id + '-' + d.target.id)
+            .attr('stroke-width', 1.2);
 
-        // Remove old nodes
-        node.exit().remove();
-
-        // Add new nodes
-        node = node.data(nodes, (d) => d.id);
-        node = node
-            .enter()
-            .append('circle')
+        node = svg.append("g")
+            .attr("class", "nodes")
+            .selectAll("circle")
+            .data(this.state.nodes)
+            .join("circle")
             .attr("r", function (d) {
-                return d.rank * 1000;
+                return d.rank * 700;
             })
             .attr('fill', 'url(#gradient)')
             .on("mouseover", function (d) {
@@ -287,63 +271,69 @@ export default class PageRank extends React.Component {
             })
             .on("mousemove", function (event, d) { return tooltip.style("top", (event.y - 15) + "px").style("left", (event.x + 15) + "px"); })
             .on("mouseout", function (event, d) { return tooltip.style("visibility", "hidden"); })
-            .call(this.drag())
-            .merge(node);
+            .call(this.drag(simulation));
 
-        link = link.data(links, (d) => {
+    }
+
+    /**
+     * Method that is called on every new incoming msg and draws updated graph.
+     */
+    updateGraph() {
+
+        // Remove anything that was removed from nodes array
+        node.exit().remove();
+
+        // Give attributes to all nodes that enter -> new ones + merge - update the existing DOM elements
+        node = node.data(this.state.nodes, (d) => d.id);
+        node = node
+            .enter()
+            .append('circle')
+            .merge(node) //returns a brand new selection that contains both enter and update selection
+            .attr("r", function (d) {
+                return d.rank * 700;
+            })
+            .attr('fill', 'url(#gradient)')
+            .on("mouseover", function (d) {
+                tooltip.text(d.srcElement["__data__"]["username"])
+                tooltip.style("visibility", "visible")
+            })
+            .on("mousemove", function (event, d) { return tooltip.style("top", (event.y - 15) + "px").style("left", (event.x + 15) + "px"); })
+            .on("mouseout", function (event, d) { return tooltip.style("visibility", "hidden"); })
+            .call(this.drag());
+
+
+        link.exit().remove();
+        link = link.data(this.state.links, (d) => {
             return d.source.id + '-' + d.target.id;
         });
-
-        // Remove old links
-        link.exit().remove();
-
         link = link
             .enter()
             .append('line')
+            .merge(link)
             .attr('id', (d) => d.source.id + '-' + d.target.id)
             .attr('stroke', 'black')
-            .attr('stroke-opacity', 0.6)
-            .attr('stroke-width', 1.5)
-            .merge(link);
+            .attr('stroke-width', 1.2);
 
-        // Set up simulation on new nodes and edges
+        // Update simulation
         try {
             simulation
-                .nodes(nodes)
-                .force('link', d3.forceLink(links).id(function (n) { return n.id; }))
-                .force(
-                    'collide',
-                    d3
-                        .forceCollide()
-                        .radius(function (d) {
-                            return d.rank * 1500;
-                        })
-                )
-                .force('charge', d3.forceManyBody())
-                .force('center', d3.forceCenter(width / 2, height / 2));
+                .nodes(this.state.nodes)
+                .force('collide', forceCollide)
+            forceLink.links(this.state.links)
         } catch (err) {
             console.log('err', err);
         }
 
-        simulation.on('tick', () => {
-            node.attr('cx', (d) => d.x).attr('cy', (d) => d.y);
-            link
-                .attr('x1', (d) => d.source.x)
-                .attr('y1', (d) => d.source.y)
-                .attr('x2', (d) => d.target.x)
-                .attr('y2', (d) => d.target.y);
-        });
         simulation.alphaTarget(0.1).restart();
     }
 
     render() {
         return (<div>
             <h1>PageRank</h1>
-            <p>Number of users that retweeted so far: {this.state.nodes.length}</p>
-            <svg ref={this.myReference}
+            <svg class="svg-pr" ref={this.myReference}
                 style={{
-                    height: 500,    //width: "100%"
-                    width: 900,
+                    height: 700,    //width: "100%"
+                    width: 1000,
                     marginRight: "0px",
                     marginLeft: "0px",
                     background: "white"
