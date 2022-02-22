@@ -2,36 +2,19 @@
 import './App.css';
 import CommunityDetection from './components/CommunityDetection';
 import PageRank from './components/PageRank';
+import React from 'react';
+import io from "socket.io-client"
 
-function App() {
-  // const [algorithm, setAlgorithm] = useState("CommunityDetection")
 
-  // const handleClick = (algorithm) => {
-  //   setAlgorithm(algorithm)
-  // }
 
-  // if (algorithm === "PageRank") {
-  //   return (
-  //     <div className="App">
-  //       <button onClick={() => handleClick("CommunityDetection")}>Check out Community Detection</button>
-  //       <PageRank />
-  //     </div >
-  //   );
-  // }
-  // else {
-  //   return (
-  //     <div className="App">
-  //       <button onClick={() => handleClick("PageRank")}>Check out PageRank</button>
-  //       <CommunityDetection />
-  //     </div >
-  //   );
-  // }
-
-  return (<div className="App">
-    <PageRank/>
-    <CommunityDetection/>
-    </div>
-  )
+export default class App extends React.Component {
+  render() {
+    const socket = io("http://localhost:5000/", { transports: ["websocket"] })
+    return (
+      <div className="App">
+        <PageRank socket={socket}/>
+        <CommunityDetection socket={socket}/>
+      </div >
+    );
+  }
 }
-
-export default App;

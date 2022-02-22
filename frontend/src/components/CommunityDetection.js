@@ -1,6 +1,5 @@
 import React from 'react';
 import * as d3 from "d3";
-import io from "socket.io-client"
 
 var node;
 var link;
@@ -23,7 +22,7 @@ export default class CommunityDetection extends React.Component {
             nodes: [],
             links: []
         }
-        this.socket = io("http://localhost:5000/", { transports: ["websocket"] })
+        this.socket = this.props.socket
     }
 
 
@@ -157,18 +156,19 @@ export default class CommunityDetection extends React.Component {
     }
 
     handleZoom(e) {
-        d3.selectAll(".svg-cd g")
+        d3.selectAll(".CommunityDetectionSvg g")
             .attr("transform", e.transform)
     }
 
     initZoom(zoom) {
-        d3.select('.svg-cd')
+        d3.select('.CommunityDetectionSvg')
             .call(zoom);
     }
 
     createTooltip() {
-        return (d3.select("body")
+        return (d3.select(".CommunityDetectionDiv")
             .append("div")
+            .attr("class", "tooltip-cd")
             .style("position", "absolute")
             .style("z-index", "10")
             .style("visibility", "hidden"));
@@ -184,7 +184,7 @@ export default class CommunityDetection extends React.Component {
         var zoom = d3.zoom()
             .on("zoom", this.handleZoom)
         this.initZoom(zoom)
-        d3.select(".svg-cd")
+        d3.select(".CommunityDetectionSvg")
             .call(zoom)
 
         tooltip = this.createTooltip()
@@ -318,9 +318,9 @@ export default class CommunityDetection extends React.Component {
     }
 
     render() {
-        return (<div>
+        return (<div className="CommunityDetectionDiv">
             <h1>Community Detection</h1>
-            <svg className="svg-cd" ref={this.myReference}
+            <svg className="CommunityDetectionSvg" ref={this.myReference}
                 style={{
                     height: 700,    //width: "100%"
                     width: 1000,

@@ -1,6 +1,5 @@
 import React from 'react';
 import * as d3 from "d3";
-import io from "socket.io-client"
 
 
 var node;
@@ -25,7 +24,7 @@ export default class PageRank extends React.Component {
             nodes: [],
             links: []
         }
-        this.socket = io("http://localhost:5000/", { transports: ["websocket", "polling"] })
+        this.socket = this.props.socket
     }
 
     async firstRequest() {
@@ -161,12 +160,12 @@ export default class PageRank extends React.Component {
     }
 
     handleZoom(e) {
-        d3.selectAll(".svg-pr g")
+        d3.selectAll(".PageRankSvg g")
             .attr("transform", e.transform)
     }
 
     initZoom(zoom) {
-        d3.select('.svg-pr')
+        d3.select('.PageRankSvg')
             .call(zoom);
     }
 
@@ -193,8 +192,9 @@ export default class PageRank extends React.Component {
     }
 
     createTooltip() {
-        return (d3.select("body")
+        return (d3.select(".PageRankDiv")
             .append("div")
+            .attr("class", "tooltip-cd")
             .style("position", "absolute")
             .style("z-index", "10")
             .style("visibility", "hidden"));
@@ -211,7 +211,7 @@ export default class PageRank extends React.Component {
         var zoom = d3.zoom()
             .on("zoom", this.handleZoom)
         this.initZoom(zoom)
-        d3.select(".svg-pr")
+        d3.select(".PageRankSvg")
             .call(zoom)
 
         tooltip = this.createTooltip()
@@ -328,9 +328,10 @@ export default class PageRank extends React.Component {
     }
 
     render() {
-        return (<div>
+        return (<div className="PageRankDiv">
+            <h2>Number of users that retweeted so far: {this.state.nodes.length}</h2>
             <h1>PageRank</h1>
-            <svg className="svg-pr" ref={this.myReference}
+            <svg className="PageRankSvg" ref={this.myReference}
                 style={{
                     height: 700,    //width: "100%"
                     width: 1000,
@@ -338,7 +339,6 @@ export default class PageRank extends React.Component {
                     marginLeft: "0px",
                     background: "white"
                 }}></svg></div>
-
         );
 
     }
