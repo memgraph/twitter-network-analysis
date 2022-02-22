@@ -1,4 +1,9 @@
-from gqlalchemy import Memgraph
+from gqlalchemy import Memgraph, MemgraphKafkaStream, MemgraphTrigger
+from gqlalchemy.models import (
+    TriggerEventType,
+    TriggerEventObject,
+    TriggerExecutionPhase,
+)
 from time import sleep
 import logging
 
@@ -44,15 +49,25 @@ def run(memgraph):
         )
 
         log.info("Creating stream connections on Memgraph")
-        memgraph.execute(
-            "CREATE KAFKA STREAM retweets TOPICS retweets TRANSFORM twitter.tweet"
+        stream = MemgraphKafkaStream(
+            name="retweets",
+            topics=["retweets"],
+            transform="twitter.tweet",
+            bootstrap_servers="'kafka:9092'",
         )
-        memgraph.execute("START STREAM retweets")
+        memgraph.create_stream(stream)
+        memgraph.start_stream(stream)
 
         log.info("Creating triggers on Memgraph")
-        memgraph.execute(
-            "CREATE TRIGGER created_trigger ON CREATE AFTER COMMIT EXECUTE CALL publisher.create(createdObjects)"
+        trigger = MemgraphTrigger(
+            name="created_trigger",
+            event_type=TriggerEventType.CREATE,
+            event_object=TriggerEventObject.ALL,
+            execution_phase=TriggerExecutionPhase.AFTER,
+            statement="CALL publisher.create(createdObjects)",
         )
+        memgraph.create_trigger(trigger)
+
     except Exception as e:
         log.info(f"Error on stream and trigger creation: {e}")
         pass

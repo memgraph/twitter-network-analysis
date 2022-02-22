@@ -16,7 +16,6 @@ services:
       [
         "/usr/lib/memgraph/memgraph",
         "--telemetry-enabled=false",
-        "--kafka-bootstrap-servers=kafka:9092",
         "--query-modules-directory=/procedures,/transformations,/usr/lib/memgraph/query_modules",
         "--log-level=TRACE",
       ]
