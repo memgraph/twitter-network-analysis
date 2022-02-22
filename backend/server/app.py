@@ -1,10 +1,8 @@
 from argparse import ArgumentParser
-from eventlet import greenthread
 from flask import Flask, Response
 from flask_cors import CORS, cross_origin
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO
 from functools import wraps
-from kafka import KafkaConsumer
 import eventlet
 import json
 import logging
@@ -76,28 +74,11 @@ def get_health():
 
 
 def kafkaconsumer():
-    consumer = KafkaConsumer(KAFKA_TOPIC, bootstrap_servers=KAFKA_IP + ":" + KAFKA_PORT)
-    try:
-        while True:
-            msg_pack = consumer.poll()
-            if not msg_pack:
-                greenthread.sleep(1)
-                continue
-            for _, messages in msg_pack.items():
-                for message in messages:
-                    message = json.loads(message.value.decode("utf8"))
-                    log.info("Message: " + str(message))
-                    try:
-                        socketio.emit("consumer", {"data": message})
-                    except Exception as error:
-                        log.info(f"`{message}`, {repr(error)}")
-                        continue
-    except KeyboardInterrupt:
-        pass
+    pass
+    # TODO: Await messages from the Kafka topic
 
 
 @app.before_first_request
 def execute_this():
-    init_log()
-    greenthread.spawn(set_up_memgraph_and_kafka())
-    greenthread.spawn(kafkaconsumer)
+    pass
+    # TODO: Set up Memgraph and start emitting messages to the React app

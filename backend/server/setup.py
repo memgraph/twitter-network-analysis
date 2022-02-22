@@ -1,9 +1,4 @@
-from gqlalchemy import Memgraph, MemgraphKafkaStream, MemgraphTrigger
-from gqlalchemy.models import (
-    TriggerEventType,
-    TriggerEventObject,
-    TriggerExecutionPhase,
-)
+from gqlalchemy import Memgraph
 from time import sleep
 import logging
 
@@ -22,52 +17,5 @@ def connect_to_memgraph(memgraph_ip, memgraph_port):
 
 
 def run(memgraph):
-    try:
-        memgraph.drop_database()
-
-        log.info("Setting up PageRank")
-        memgraph.execute("CALL pagerank_online.set(100, 0.2) YIELD *")
-        memgraph.execute(
-            """CREATE TRIGGER pagerank_trigger 
-               BEFORE COMMIT 
-               EXECUTE CALL pagerank_online.update(createdVertices, createdEdges, deletedVertices, deletedEdges) YIELD *
-               SET node.rank = rank
-               CALL publisher.update_rank(node, rank);"""
-        )
-
-        log.info("Setting up community detection")
-        memgraph.execute(
-            "CALL community_detection_online.set(False, False, 0.7, 4.0, 0.1, 'weight', 1.0, 100, 5) YIELD *;"
-        )
-        memgraph.execute(
-            """CREATE TRIGGER labelrankt_trigger 
-               BEFORE COMMIT
-               EXECUTE CALL community_detection_online.update(createdVertices, createdEdges, updatedVertices, updatedEdges, deletedVertices, deletedEdges) 
-               YIELD node, community_id
-               SET node.cluster=community_id
-               CALL publisher.update_cluster(node, community_id);"""
-        )
-
-        log.info("Creating stream connections on Memgraph")
-        stream = MemgraphKafkaStream(
-            name="retweets",
-            topics=["retweets"],
-            transform="twitter.tweet",
-            bootstrap_servers="'kafka:9092'",
-        )
-        memgraph.create_stream(stream)
-        memgraph.start_stream(stream)
-
-        log.info("Creating triggers on Memgraph")
-        trigger = MemgraphTrigger(
-            name="created_trigger",
-            event_type=TriggerEventType.CREATE,
-            event_object=TriggerEventObject.ALL,
-            execution_phase=TriggerExecutionPhase.AFTER,
-            statement="CALL publisher.create(createdObjects)",
-        )
-        memgraph.create_trigger(trigger)
-
-    except Exception as e:
-        log.info(f"Error on stream and trigger creation: {e}")
-        pass
+    pass
+    # TODO: Add the graph analytics setup
