@@ -28,7 +28,7 @@ export default class CommunityDetection extends React.Component {
 
 
     firstRequest() {
-        fetch("http://localhost:5000/api/graph")
+        fetch("http://localhost:5000/health")
             .then((res) => res.json())
             .then((result) => console.log(result))
     }
@@ -320,7 +320,7 @@ export default class CommunityDetection extends React.Component {
     render() {
         return (<div>
             <h1>Community Detection</h1>
-            <svg class="svg-cd" ref={this.myReference}
+            <svg className="svg-cd" ref={this.myReference}
                 style={{
                     height: 700,    //width: "100%"
                     width: 1000,

@@ -20,53 +20,82 @@
   </a>
 </p>
 
-A web application with backend in Flask and frontend in React and D3.js that uses Memgraph to ingest real-time data scraped from Twitter. Data is streamed via Kafka and stream processing is performed with Memgraph.
+A web application with backend in Flask and frontend in React and D3.js that
+uses Memgraph to ingest real-time data scraped from Twitter. Data is streamed
+via Kafka and stream processing is performed with Memgraph.
+
+## App architecture
+
+<p align="left">
+  <img width="600px" src="https://public-assets.memgraph.com/real-time-visualization-with-react-and-d3-js/memgraph-tutorial-twitter-app-architecture.png" alt="memgraph-tutorial-twitter-app-architecture">
+</p>
 
 ## Data model
 
-![memgraph-tutorial-twitter-pagerank-graph-schema](https://public-assets.memgraph.com/twitter-analysis-with-dynamic-pagerank/memgraph-tutorial-twitter-pagerank-graph-schema.png)
-
+<p align="left">
+  <img width="300px" src="https://public-assets.memgraph.com/twitter-analysis-with-dynamic-pagerank/memgraph-tutorial-twitter-pagerank-graph-schema.png" alt="memgraph-tutorial-twitter-pagerank-graph-schema">
+</p>
 
 ## Prerequisites
 
 You will need:
-* [Docker](https://docs.docker.com/get-docker/)
-* [Docker Compose](https://docs.docker.com/compose/install/) (included with
+
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/) (included with
   Docker Desktop on Windows and macOS)
 
 ## Running the app
+
+### With a bash script
+
 You can start everything but frontend by **running the bash script**:
+
 ```
 bash run_docker.sh
 ```
+
 After that, in other window run the frontend app with:
+
 ```
 docker-compose up frontend-app
 ```
 
+### Manually using Docker Compose
+
 If you want to start the app **without using the bash script**, then:
 
 **1.** Remove possibly running containers:
+
 ```
 docker-compose rm -fs
 ```
+
 **2.** Build all the needed images:
+
 ```
 docker-compose build
 ```
+
 **3.** Start the **Kafka**, **Zookeeper** and **Memgraph MAGE** services:
+
 ```
 docker-compose up -d core
 ```
+
 **4.** Start the data stream:
+
 ```
 docker-compose up -d stream
 ```
+
 **5.** Start the backend application:
+
 ```
 docker-compose up backend-app
 ```
+
 **6.** Start the frontend application in new terminal window:
+
 ```
 docker-compose up frontend-app
 ```
@@ -75,10 +104,14 @@ The React application will be running on `http://localhost:3000`.
 
 ## Choose the visualization
 
-In the dropdown, select the algorithm you want to check out, and click on the 'Select algorithm' button.
+In the dropdown, select the algorithm you want to check out, and click on the
+'Select algorithm' button.
 
 Default algorithm is **Community detection**:
 
+<p align="left">
+  <img width="300px" src="https://public-assets.memgraph.com/twitter-analysis-with-dynamic-pagerank/memgraph-tutorial-twitter-pagerank-graph-schema.png">
+</p>
 ![memgraph-tutorial-community-detection-stream](https://public-assets.memgraph.com/real-time-visualization-with-react-and-d3-js/memgraph-tutorial-community-detection-stream.gif)
 
 The other algoritm is **PageRank**:

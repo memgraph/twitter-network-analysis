@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 from eventlet import greenthread
-from flask import Flask, render_template, Response
+from flask import Flask, Response
 from flask_cors import CORS, cross_origin
 from flask_socketio import SocketIO, emit
 from functools import wraps
@@ -69,67 +69,10 @@ def set_up_memgraph_and_kafka():
     setup.run(memgraph)
 
 
-@app.route("/test", methods=["GET"])
+@app.route("/health", methods=["GET"])
 @cross_origin()
-def index():
-    return render_template("index.html")
-
-
-def parse_node(result):
-    node = None
-    if list(result.labels)[0] == "User":
-        node = {
-            "id": result.id,
-            "labels": list(result.labels),
-            "username": result.properties["username"],
-            "rank": result.properties["rank"],
-            "cluster": result.properties["cluster"],
-        }
-    return node
-
-
-@app.route("/api/graph", methods=["GET"])
-@cross_origin()
-def get_graph():
-    results = list(
-        memgraph.execute_and_fetch(
-            """
-        match (n)-[r]-(m:User) return n, r, m limit 30
-    """
-        )
-    )
-
-    nodes_id_set = set()
-    links_id_set = set()
-    nodes_list = []
-    links_list = []
-    for result in results:
-        source = parse_node(result["n"])
-        target = parse_node(result["m"])
-        edge = {
-            "id": result["r"].id,
-            "type": result["r"].type,
-            "source": source["id"],
-            "target": target["id"],
-        }
-
-        if source["id"] not in nodes_id_set:
-            nodes_id_set.add(source["id"])
-            nodes_list.append(source)
-        if target["id"] not in nodes_id_set:
-            nodes_id_set.add(target["id"])
-            nodes_list.append(target)
-        if edge["id"] not in links_id_set:
-            links_id_set.add(edge["id"])
-            links_list.append(edge)
-
-    response = {"vertices": nodes_list, "edges": links_list}
-    return Response(json.dumps(response), status=200, mimetype="application/json")
-
-
-@socketio.on("connect")
-def test_connect():
-    emit("logs", {"data": "Connection established"})
+def get_health():
+    return Response(json.dumps("Health OK"), status=200)
 
 
 def kafkaconsumer():
@@ -158,18 +101,3 @@ def execute_this():
     init_log()
     greenthread.spawn(set_up_memgraph_and_kafka())
     greenthread.spawn(kafkaconsumer)
-
-
-"""
-def main():
-    if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-        args = parse_args()
-        init_log()
-        set_up_memgraph_and_kafka()
-        greenthread.spawn(kafkaconsumer)
-    socketio.run(app, host=args.host, port=args.port, debug=args.debug)
-
-
-if __name__ == "__main__":
-    main()
-"""

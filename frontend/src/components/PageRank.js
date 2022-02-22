@@ -29,7 +29,7 @@ export default class PageRank extends React.Component {
     }
 
     async firstRequest() {
-        let response = await fetch("http://localhost:5000/api/graph")
+        let response = await fetch("http://localhost:5000/health")
         
         if (!response.ok){
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -330,7 +330,7 @@ export default class PageRank extends React.Component {
     render() {
         return (<div>
             <h1>PageRank</h1>
-            <svg class="svg-pr" ref={this.myReference}
+            <svg className="svg-pr" ref={this.myReference}
                 style={{
                     height: 700,    //width: "100%"
                     width: 1000,
