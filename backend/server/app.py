@@ -6,6 +6,7 @@ from flask_socketio import SocketIO
 from functools import wraps
 import eventlet
 import json
+from kafka import KafkaConsumer
 import logging
 import os
 import server.setup as setup
