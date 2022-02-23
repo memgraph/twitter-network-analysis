@@ -1,4 +1,9 @@
-from gqlalchemy import Memgraph
+from gqlalchemy import Memgraph, MemgraphKafkaStream, MemgraphTrigger
+from gqlalchemy.models import (
+    TriggerEventType,
+    TriggerEventObject,
+    TriggerExecutionPhase,
+)
 from time import sleep
 import logging
 
