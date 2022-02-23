@@ -26,6 +26,7 @@ def run(memgraph):
         memgraph.drop_database()
 
         log.info("Setting up PageRank")
+
         memgraph.execute("CALL pagerank_online.set(100, 0.2) YIELD *")
         memgraph.execute(
             """CREATE TRIGGER pagerank_trigger 
@@ -36,6 +37,7 @@ def run(memgraph):
         )
 
         log.info("Setting up community detection")
+
         memgraph.execute(
             "CALL community_detection_online.set(False, False, 0.7, 4.0, 0.1, 'weight', 1.0, 100, 5) YIELD *;"
         )
@@ -49,24 +51,9 @@ def run(memgraph):
         )
 
         log.info("Creating stream connections on Memgraph")
-        stream = MemgraphKafkaStream(
-            name="retweets",
-            topics=["retweets"],
-            transform="twitter.tweet",
-            bootstrap_servers="'kafka:9092'",
-        )
-        memgraph.create_stream(stream)
-        memgraph.start_stream(stream)
-
-        log.info("Creating triggers on Memgraph")
-        trigger = MemgraphTrigger(
-            name="created_trigger",
-            event_type=TriggerEventType.CREATE,
-            event_object=TriggerEventObject.ALL,
-            execution_phase=TriggerExecutionPhase.AFTER,
-            statement="CALL publisher.create(createdObjects)",
-        )
-        memgraph.create_trigger(trigger)
+        # TODO Create and start stream
+        log.info("Creating trigger on Memgraph")
+        # TODO Create trigger
 
     except Exception as e:
         log.info(f"Error on stream and trigger creation: {e}")
