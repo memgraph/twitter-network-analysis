@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from eventlet import greenthread
 from flask import Flask, Response
 from flask_cors import CORS, cross_origin
 from flask_socketio import SocketIO
@@ -80,5 +81,6 @@ def kafkaconsumer():
 
 @app.before_first_request
 def execute_this():
-    pass
-    # TODO: Set up Memgraph and start emitting messages to the React app
+    init_log()
+    greenthread.spawn(set_up_memgraph_and_kafka())
+    greenthread.spawn(kafkaconsumer)
