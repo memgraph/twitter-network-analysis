@@ -27,13 +27,13 @@ via Kafka and stream processing is performed with Memgraph.
 ## App architecture
 
 <p align="left">
-  <img width="600px" src="https://public-assets.memgraph.com/real-time-visualization-with-react-and-d3-js/memgraph-tutorial-twitter-app-architecture.png" alt="memgraph-tutorial-twitter-app-architecture">
+  <img width="600px" src="https://raw.githubusercontent.com/memgraph/twitter-network-analysis/main/img/stream-processing-arc-01-01.png" alt="memgraph-tutorial-twitter-app-architecture">
 </p>
 
 ## Data model
 
 <p align="left">
-  <img width="300px" src="https://public-assets.memgraph.com/twitter-analysis-with-dynamic-pagerank/memgraph-tutorial-twitter-pagerank-graph-schema.png" alt="memgraph-tutorial-twitter-pagerank-graph-schema">
+  <img width="300px" src="https://raw.githubusercontent.com/memgraph/twitter-network-analysis/main/img/twitter-dataset-01.png" alt="memgraph-tutorial-twitter-pagerank-graph-schema">
 </p>
 
 ## Prerequisites
