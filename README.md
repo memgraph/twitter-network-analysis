@@ -112,8 +112,9 @@ Default algorithm is **Community detection**:
 <p align="left">
   <img width="300px" src="https://public-assets.memgraph.com/twitter-analysis-with-dynamic-pagerank/memgraph-tutorial-twitter-pagerank-graph-schema.png">
 </p>
-![memgraph-tutorial-community-detection-stream](https://public-assets.memgraph.com/real-time-visualization-with-react-and-d3-js/memgraph-tutorial-community-detection-stream.gif)
+
+![memgraph-tutorial-community-detection](https://raw.githubusercontent.com/memgraph/twitter-network-analysis/main/img/memgraph-tutorial-community-detection-stream.gif)
 
 The other algoritm is **PageRank**:
 
-![memgraph-tutorial-pagerank-stream](https://public-assets.memgraph.com/real-time-visualization-with-react-and-d3-js/memgraph-tutorial-pagerank-stream.gif)
+![memgraph-tutorial-pagerank-stream](https://raw.githubusercontent.com/memgraph/twitter-network-analysis/main/img/memgraph-tutorial-pagerank-stream.gif)
