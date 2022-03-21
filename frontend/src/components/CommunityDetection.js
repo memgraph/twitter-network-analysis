@@ -26,10 +26,14 @@ export default class CommunityDetection extends React.Component {
     }
 
 
-    firstRequest() {
-        fetch("http://localhost:5000/health")
-            .then((res) => res.json())
-            .then((result) => console.log(result))
+    async firstRequest() {
+        let response = await fetch("http://localhost:5000/health")
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        else
+            console.log(response)
     }
 
     transformData(data) {
@@ -55,7 +59,7 @@ export default class CommunityDetection extends React.Component {
 
     isRankUpdated(msg) {
         let nodes = msg.data.vertices
-        if(nodes.length !== 1)
+        if (nodes.length !== 1)
             return false
         return !("cluster" in nodes["0"])
     }
@@ -88,13 +92,13 @@ export default class CommunityDetection extends React.Component {
             var newNode = newNodes["0"]
 
             // ignore rank updates
-            if(this.isRankUpdated(msg)){
+            if (this.isRankUpdated(msg)) {
                 return
             }
-                
+
             // if cluster update or simple msg
             var value = oldNodes.find((node) => node.id === newNode.id)
-            if(typeof value === 'undefined'){
+            if (typeof value === 'undefined') {
                 updatedNodes = oldNodes.concat(newNodes)
             }
             else {
@@ -110,7 +114,7 @@ export default class CommunityDetection extends React.Component {
                 );
             })
 
-            var updatedLinks = oldLinks.concat(filteredLinks) 
+            var updatedLinks = oldLinks.concat(filteredLinks)
 
             this.setState({ nodes: updatedNodes, links: updatedLinks })
         });
@@ -212,7 +216,7 @@ export default class CommunityDetection extends React.Component {
                 d3.forceY().strength(0.05)
             );
 
-        
+
         simulation.on("tick", () => {
             node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
             link
@@ -267,7 +271,7 @@ export default class CommunityDetection extends React.Component {
         // Remove old nodes
         node.exit().remove();
 
-         // Give attributes to all nodes that enter -> new ones + merge - update the existing DOM elements
+        // Give attributes to all nodes that enter -> new ones + merge - update the existing DOM elements
         node = node.data(this.state.nodes, (d) => d.id);
         node = node
             .enter()
@@ -305,7 +309,7 @@ export default class CommunityDetection extends React.Component {
             .attr('stroke-opacity', 0.8)
             .attr('stroke-width', 1.5);
 
-        // Set up simulation on new nodes and edges
+        // Set up simulation on new nodes and links
         try {
             simulation
                 .nodes(this.state.nodes)
