@@ -1,1 +1,1 @@
-kafka-python==2.0.2
+pulsar-client==2.9.1

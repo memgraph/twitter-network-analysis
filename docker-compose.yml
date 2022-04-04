@@ -10,8 +10,8 @@ services:
     ports:
       - "7687:7687"
     environment:
-      KAFKA_IP: kafka
-      KAFKA_PORT: "9092"
+      PULSAR_IP: pulsar
+      PULSAR_PORT: "6650"
     entrypoint:
       [
         "/usr/lib/memgraph/memgraph",
@@ -22,34 +22,14 @@ services:
     networks:
       - app-tier
 
-  zookeeper:
-    image: "bitnami/zookeeper:3.7"
+  pulsar:
+    image: apachepulsar/pulsar:2.6.0
     ports:
-      - "2181:2181"
+      - 8080:8080
+      - 6650:6650
     environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
-    networks:
-      - app-tier
-    logging:
-      driver: none
-
-  kafka:
-    image: "bitnami/kafka:2"
-    logging:
-      driver: none
-    ports:
-      - "9092:9092"
-      - "9093:9093"
-    environment:
-      - KAFKA_BROKER_ID=1
-      - ALLOW_PLAINTEXT_LISTENER=yes
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
-      - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:9093
-      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:9092,EXTERNAL://localhost:9093
-      - KAFKA_INTER_BROKER_LISTENER_NAME=CLIENT
-    depends_on:
-      - zookeeper
+      PULSAR_MEM: " -Xms512m -Xmx512m -XX:MaxDirectMemorySize=1g"
+    command: bin/pulsar standalone
     networks:
       - app-tier
 
@@ -57,7 +37,7 @@ services:
     image: tianon/true
     restart: "no"
     depends_on:
-      - kafka
+      - pulsar
       - memgraph-mage
 
   stream:
@@ -66,9 +46,9 @@ services:
       dockerfile: ./stream/Dockerfile
     entrypoint: ["python3", "produce.py", "--stream-delay", "2.0"]
     environment:
-      KAFKA_IP: kafka
-      KAFKA_PORT: 9092
-      KAFKA_TOPIC: "retweets"
+      PULSAR_IP: pulsar
+      PULSAR_PORT: 6650
+      PULSAR_TOPIC: "retweets"
     networks:
       - app-tier
 
@@ -79,14 +59,14 @@ services:
     ports:
       - "5000:5000"
     environment:
-      KAFKA_IP: kafka
-      KAFKA_PORT: 9092
-      KAFKA_TOPIC: "created_objects"
+      PULSAR_IP: pulsar
+      PULSAR_PORT: 6650
+      PULSAR_TOPIC: "created_objects"
       MEMGRAPH_IP: memgraph-mage
       MEMGRAPH_PORT: "7687"
     depends_on:
       - memgraph-mage
-      - kafka
+      - pulsar
     networks:
       - app-tier
 

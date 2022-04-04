@@ -1,4 +1,4 @@
-from gqlalchemy import Memgraph, MemgraphKafkaStream, MemgraphTrigger
+from gqlalchemy import Memgraph, MemgraphPulsarStream, MemgraphTrigger
 from gqlalchemy.models import (
     TriggerEventType,
     TriggerEventObject,
@@ -49,11 +49,10 @@ def run(memgraph):
         )
 
         log.info("Creating stream connections on Memgraph")
-        stream = MemgraphKafkaStream(
+        stream = MemgraphPulsarStream(
             name="retweets",
             topics=["retweets"],
             transform="twitter.tweet",
-            bootstrap_servers="'kafka:9092'",
         )
         memgraph.create_stream(stream)
         memgraph.start_stream(stream)
