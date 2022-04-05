@@ -17,7 +17,9 @@ def producer(ip, port, topic, generate, stream_delay):
 
 def consumer(ip, port, topic, platform):
     client = pulsar.Client("pulsar://" + ip + ":" + port)
-    consumer = client.subscribe(topic, "my-subscription")
+    consumer = client.subscribe(
+        topic, "source-subscription", consumer_type=pulsar.ConsumerType.Shared
+    )
     while True:
         msg = consumer.receive()
         try:

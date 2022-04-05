@@ -77,7 +77,9 @@ def get_health():
 
 def pulsarconsumer():
     client = pulsar.Client("pulsar://" + PULSAR_IP + ":" + PULSAR_PORT)
-    consumer = client.subscribe(PULSAR_TOPIC, "my-subscription")
+    consumer = client.subscribe(
+        PULSAR_TOPIC, "backend-subscription", consumer_type=pulsar.ConsumerType.Shared
+    )
     try:
         while True:
             msg_pack = consumer.receive()
