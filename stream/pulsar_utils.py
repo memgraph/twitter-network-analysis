@@ -9,22 +9,10 @@ def producer(ip, port, topic, generate, stream_delay):
     message = generate()
     while True:
         try:
-            producer.send(json.dumps(next(message)).encode("utf8"))
+            msg = json.dumps(next(message))
+            producer.send(msg.encode("utf8"))
+            print("Produce: ", msg.encode("utf8"))
+            producer.flush()
             sleep(stream_delay)
         except Exception as e:
             print(f"Error: {e}")
-
-
-def consumer(ip, port, topic, platform):
-    client = pulsar.Client("pulsar://" + ip + ":" + port)
-    consumer = client.subscribe(
-        topic, "source-subscription", consumer_type=pulsar.ConsumerType.Shared
-    )
-    while True:
-        msg = consumer.receive()
-        try:
-            print(platform, ": ", msg.data())
-            consumer.acknowledge(msg)
-        except:
-            consumer.negative_acknowledge(msg)
-            client.close()

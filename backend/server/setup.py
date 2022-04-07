@@ -53,8 +53,9 @@ def run(memgraph):
             name="retweets",
             topics=["retweets"],
             transform="twitter.tweet",
-            service_url="pulsar://pulsar:6650"
+            service_url="'pulsar://pulsar:6650'"
         )
+        log.info(MemgraphPulsarStream.to_cypher)
         memgraph.create_stream(stream)
         memgraph.start_stream(stream)
 

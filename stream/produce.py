@@ -1,8 +1,8 @@
-from multiprocessing import Process
 import argparse
 import csv
 import os
 import pulsar_utils
+import time
 
 PULSAR_IP = os.getenv("PULSAR_IP", "pulsar")
 PULSAR_PORT = os.getenv("PULSAR_PORT", "6650")
@@ -47,26 +47,10 @@ def generate_tweets():
 
 def main():
     args = parse_arguments()
-    process_list = list()
-
-    p1 = Process(
-        target=lambda: pulsar_utils.producer(
-            PULSAR_IP, PULSAR_PORT, PULSAR_TOPIC, generate_tweets, args.stream_delay
-        )
+    time.sleep(15)
+    pulsar_utils.producer(
+        PULSAR_IP, PULSAR_PORT, PULSAR_TOPIC, generate_tweets, args.stream_delay
     )
-    p1.start()
-    process_list.append(p1)
-
-    p2 = Process(
-        target=lambda: pulsar_utils.consumer(
-            PULSAR_IP, PULSAR_PORT, PULSAR_TOPIC, "Pulsar"
-        )
-    )
-    p2.start()
-    process_list.append(p2)
-
-    for process in process_list:
-        process.join()
 
 
 if __name__ == "__main__":

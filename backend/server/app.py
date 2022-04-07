@@ -80,35 +80,19 @@ def pulsarconsumer():
     consumer = client.subscribe(
         PULSAR_TOPIC, "backend-subscription", consumer_type=pulsar.ConsumerType.Shared
     )
-    try:
-        while True:
-            msg_pack = consumer.receive()
-            if not msg_pack:
-                greenthread.sleep(1)
-                continue
-
-            for _, messages in msg_pack.items():
-                for message in messages:
-                    message = json.loads(message.value.decode("utf8"))
-                    log.info("Message: " + str(message))
-                    try:
-                        consumer.acknowledge(message)
-                        socketio.emit("consumer", {"data": message})
-                    except Exception as error:
-                        log.info(f"`{message}`, {repr(error)}")
-                        consumer.negative_acknowledge(message)
-                        client.close()
-                        continue
-            try:
-                log.info("Message: " + str(msg_pack))
-                # Acknowledge successful processing of the message
-                consumer.acknowledge(message)
-            except:
-                # Message failed to be processed
-                consumer.negative_acknowledge(message)
-                client.close()
-    except KeyboardInterrupt:
-        pass
+    log.info("wait for messages")
+    while True:
+        msg = consumer.receive()
+        message = json.loads(msg.data().decode("utf8"))
+        log.info(message)
+        try:
+            consumer.acknowledge(msg)
+            socketio.emit("consumer", {"data": message})
+        except Exception as error:
+            log.info(f"`{message}`, {repr(error)}")
+            consumer.negative_acknowledge(msg)
+            client.close()
+        greenthread.sleep(0.5)
 
 
 @app.before_first_request
