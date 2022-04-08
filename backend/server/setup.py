@@ -1,4 +1,9 @@
-from gqlalchemy import Memgraph, MemgraphPulsarStream, MemgraphTrigger
+from gqlalchemy import (
+    Memgraph,
+    MemgraphKafkaStream,
+    MemgraphPulsarStream,
+    MemgraphTrigger,
+)
 from gqlalchemy.models import (
     TriggerEventType,
     TriggerEventObject,
@@ -6,8 +11,11 @@ from gqlalchemy.models import (
 )
 from time import sleep
 import logging
+import os
 
-log = logging.getLogger(__name__)
+BROKER = os.getenv("BROKER", "kafka")
+
+log = logging.getLogger("server")
 
 
 def connect_to_memgraph(memgraph_ip, memgraph_port):
@@ -49,13 +57,21 @@ def run(memgraph):
         )
 
         log.info("Creating stream connections on Memgraph")
-        stream = MemgraphPulsarStream(
-            name="retweets",
-            topics=["retweets"],
-            transform="twitter.tweet",
-            service_url="'pulsar://pulsar:6650'"
-        )
-        log.info(MemgraphPulsarStream.to_cypher)
+        stream = None
+        if BROKER == "kafka":
+            stream = MemgraphKafkaStream(
+                name="retweets",
+                topics=["retweets"],
+                transform="twitter.tweet",
+                bootstrap_servers="'kafka:9092'",
+            )
+        else:
+            stream = MemgraphPulsarStream(
+                name="retweets",
+                topics=["retweets"],
+                transform="twitter.tweet",
+                service_url="'pulsar://pulsar:6650'",
+            )
         memgraph.create_stream(stream)
         memgraph.start_stream(stream)
 

@@ -22,7 +22,9 @@
 
 A web application with backend in Flask and frontend in React and D3.js that
 uses Memgraph to ingest real-time data scraped from Twitter. Data is streamed
-via Kafka and stream processing is performed with Memgraph.
+via [Apache Kafka](https://kafka.apache.org/) or [Apache
+Pulsar](https://pulsar.apache.org/), and stream processing is performed with
+Memgraph.
 
 ## App architecture
 
@@ -48,17 +50,20 @@ You will need:
 
 ### With a bash script
 
-You can start everything but frontend by **running the bash script**:
+You can start everything but the frontend client by **running the bash script**:
 
 ```
-bash run_docker.sh
+bash run_kafka.sh
 ```
 
-After that, in other window run the frontend app with:
+If you want to run the app with Apache Pulsar, use the script `bash
+run_pulsar.sh`. After that, in another window, run the frontend app with:
 
 ```
 docker-compose up frontend-app
 ```
+
+The React application will be running on `http://localhost:3000`.
 
 ### Manually using Docker Compose
 
@@ -76,25 +81,26 @@ docker-compose rm -fs
 docker-compose build
 ```
 
-**3.** Start the **Kafka**, **Zookeeper** and **Memgraph MAGE** services:
+**3.** Start the **Apache Kafka** and **Memgraph MAGE** services:
 
 ```
-docker-compose up -d core
+docker-compose up -d kafka
+docker-compose up -d memgraph-mage-kafka
 ```
 
 **4.** Start the data stream:
 
 ```
-docker-compose up -d stream
+docker-compose up -d stream-kafka
 ```
 
 **5.** Start the backend application:
 
 ```
-docker-compose up backend-app
+docker-compose up backend-kafka
 ```
 
-**6.** Start the frontend application in new terminal window:
+**6.** Start the frontend application in a new terminal window:
 
 ```
 docker-compose up frontend-app
@@ -102,12 +108,9 @@ docker-compose up frontend-app
 
 The React application will be running on `http://localhost:3000`.
 
-## Choose the visualization
+## The visualization
 
-In the dropdown, select the algorithm you want to check out, and click on the
-'Select algorithm' button.
-
-Default algorithm is **Community detection**:
+**Dynamic Community detection**:
 
 <p align="left">
   <img width="300px" src="https://public-assets.memgraph.com/twitter-analysis-with-dynamic-pagerank/memgraph-tutorial-twitter-pagerank-graph-schema.png">
@@ -115,6 +118,6 @@ Default algorithm is **Community detection**:
 
 ![memgraph-tutorial-community-detection](https://raw.githubusercontent.com/memgraph/twitter-network-analysis/main/img/memgraph-tutorial-community-detection-stream.gif)
 
-The other algoritm is **PageRank**:
+**Dynamic PageRank**:
 
 ![memgraph-tutorial-pagerank-stream](https://raw.githubusercontent.com/memgraph/twitter-network-analysis/main/img/memgraph-tutorial-pagerank-stream.gif)

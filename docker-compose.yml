@@ -5,14 +5,15 @@ networks:
     driver: bridge
 
 services:
-  memgraph-mage:
+  memgraph-mage-kafka:
     build: ./memgraph
     ports:
       - "7687:7687"
       - "7444:7444"
     environment:
-      PULSAR_IP: pulsar
-      PULSAR_PORT: "6650"
+      KAFKA_IP: kafka
+      KAFKA_PORT: "9092"
+      BROKER: "kafka"
     entrypoint:
       [
         "/usr/lib/memgraph/memgraph",
@@ -20,6 +21,56 @@ services:
         "--query-modules-directory=/procedures,/transformations,/usr/lib/memgraph/query_modules",
         "--log-level=TRACE",
       ]
+    networks:
+      - app-tier
+
+  memgraph-mage-pulsar:
+    build: ./memgraph
+    ports:
+      - "7687:7687"
+      - "7444:7444"
+    environment:
+      PULSAR_IP: pulsar
+      PULSAR_PORT: "6650"
+      BROKER: "pulsar"
+    entrypoint:
+      [
+        "/usr/lib/memgraph/memgraph",
+        "--telemetry-enabled=false",
+        "--query-modules-directory=/procedures,/transformations,/usr/lib/memgraph/query_modules",
+        "--log-level=TRACE",
+      ]
+    networks:
+      - app-tier
+  
+  zookeeper:
+    image: "bitnami/zookeeper:3.7"
+    ports:
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    networks:
+      - app-tier
+    logging:
+      driver: none
+
+  kafka:
+    image: "bitnami/kafka:2"
+    logging:
+      driver: none
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      - KAFKA_BROKER_ID=1
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:9092,EXTERNAL://localhost:9093
+      - KAFKA_INTER_BROKER_LISTENER_NAME=CLIENT
+    depends_on:
+      - zookeeper
     networks:
       - app-tier
 
@@ -34,18 +85,23 @@ services:
     networks:
       - app-tier
 
-  core:
-    image: tianon/true
-    restart: "no"
-    depends_on:
-      - pulsar
-      - memgraph-mage
-
-  stream:
+  stream-kafka:
     build:
       context: ./
       dockerfile: ./stream/Dockerfile
-    entrypoint: ["python3", "produce.py", "--stream-delay", "2.0"]
+    entrypoint: ["python3", "produce.py", "--stream-delay", "2.0", "--broker", "kafka"]
+    environment:
+      KAFKA_IP: kafka
+      KAFKA_PORT: 9092
+      KAFKA_TOPIC: "retweets"
+    networks:
+      - app-tier
+
+  stream-pulsar:
+    build:
+      context: ./
+      dockerfile: ./stream/Dockerfile
+    entrypoint: ["python3", "produce.py", "--stream-delay", "2.0", "--broker", "pulsar"]
     environment:
       PULSAR_IP: pulsar
       PULSAR_PORT: 6650
@@ -53,8 +109,9 @@ services:
     networks:
       - app-tier
 
-  backend-app:
+  backend-pulsar:
     build: ./backend
+    entrypoint: ["gunicorn", "--worker-class", "eventlet", "-w", "1", "-b", "0.0.0.0:5000", "--preload", "server.app:app"]
     volumes:
       - ./backend:/app
     ports:
@@ -63,11 +120,30 @@ services:
       PULSAR_IP: pulsar
       PULSAR_PORT: 6650
       PULSAR_TOPIC: "created_objects"
-      MEMGRAPH_IP: memgraph-mage
+      MEMGRAPH_IP: memgraph-mage-pulsar
       MEMGRAPH_PORT: "7687"
+      BROKER: "pulsar"
     depends_on:
-      - memgraph-mage
       - pulsar
+    networks:
+      - app-tier
+
+  backend-kafka:
+    build: ./backend
+    entrypoint: ["gunicorn", "--worker-class", "eventlet", "-w", "1", "-b", "0.0.0.0:5000", "--preload", "server.app:app"]
+    volumes:
+      - ./backend:/app
+    ports:
+      - "5000:5000"
+    environment:
+      KAFKA_IP: kafka
+      KAFKA_PORT: 9092
+      KAFKA_TOPIC: "created_objects"
+      MEMGRAPH_IP: memgraph-mage-kafka
+      MEMGRAPH_PORT: "7687"
+      BROKER: "kafka"
+    depends_on:
+      - kafka
     networks:
       - app-tier
 
@@ -78,7 +154,5 @@ services:
       - /app/node_modules
     ports:
       - "3000:3000"
-    depends_on:
-      - backend-app
     networks:
       - app-tier
