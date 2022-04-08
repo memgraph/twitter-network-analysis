@@ -1,10 +1,16 @@
-from kafka import KafkaProducer
 import json
 import mgp
 import os
+import pulsar
+from kafka import KafkaProducer
 
 KAFKA_IP = os.getenv("KAFKA_IP", "kafka")
 KAFKA_PORT = os.getenv("KAFKA_PORT", "9092")
+
+PULSAR_IP = os.getenv("PULSAR_IP", "localhost")
+PULSAR_PORT = os.getenv("PULSAR_PORT", "6650")
+
+BROKER = os.getenv("BROKER", "kafka")
 
 
 @mgp.read_proc
@@ -31,10 +37,16 @@ def create(created_objects: mgp.Any) -> mgp.Record():
                 }
             )
 
-    kafka_producer = KafkaProducer(bootstrap_servers=KAFKA_IP + ":" + KAFKA_PORT)
-    kafka_producer.send(
-        "created_objects", json.dumps(created_objects_info).encode("utf8")
-    )
+    if BROKER == "kafka":
+        kafka_producer = KafkaProducer(bootstrap_servers=KAFKA_IP + ":" + KAFKA_PORT)
+        kafka_producer.send(
+            "created_objects", json.dumps(created_objects_info).encode("utf8")
+        )
+    else:
+        pulsar_producer = pulsar.Client(
+            "pulsar://" + PULSAR_IP + ":" + PULSAR_PORT
+        ).create_producer("created_objects")
+        pulsar_producer.send(json.dumps(created_objects_info).encode("utf8"))
 
     return mgp.Record()
 
@@ -51,10 +63,16 @@ def update_rank(node: mgp.Vertex, rank: float) -> mgp.Record():
     }
     updated_objects_info["vertices"].append(updated_object)
 
-    kafka_producer = KafkaProducer(bootstrap_servers=KAFKA_IP + ":" + KAFKA_PORT)
-    kafka_producer.send(
-        "created_objects", json.dumps(updated_objects_info).encode("utf8")
-    )
+    if BROKER == "kafka":
+        kafka_producer = KafkaProducer(bootstrap_servers=KAFKA_IP + ":" + KAFKA_PORT)
+        kafka_producer.send(
+            "created_objects", json.dumps(updated_objects_info).encode("utf8")
+        )
+    else:
+        pulsar_producer = pulsar.Client(
+            "pulsar://" + PULSAR_IP + ":" + PULSAR_PORT
+        ).create_producer("created_objects")
+        pulsar_producer.send(json.dumps(updated_objects_info).encode("utf8"))
 
     return mgp.Record()
 
@@ -71,9 +89,15 @@ def update_cluster(node: mgp.Vertex, community_id: int) -> mgp.Record():
     }
     updated_objects_info["vertices"].append(updated_object)
 
-    kafka_producer = KafkaProducer(bootstrap_servers=KAFKA_IP + ":" + KAFKA_PORT)
-    kafka_producer.send(
-        "created_objects", json.dumps(updated_objects_info).encode("utf8")
-    )
+    if BROKER == "kafka":
+        kafka_producer = KafkaProducer(bootstrap_servers=KAFKA_IP + ":" + KAFKA_PORT)
+        kafka_producer.send(
+            "created_objects", json.dumps(updated_objects_info).encode("utf8")
+        )
+    else:
+        pulsar_producer = pulsar.Client(
+            "pulsar://" + PULSAR_IP + ":" + PULSAR_PORT
+        ).create_producer("created_objects")
+        pulsar_producer.send(json.dumps(updated_objects_info).encode("utf8"))
 
     return mgp.Record()
