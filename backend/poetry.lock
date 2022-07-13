@@ -240,7 +240,7 @@ dev = ["pre-commit", "tox"]
 
 [[package]]
 name = "pulsar-client"
-version = "2.9.1"
+version = "2.10.0"
 description = "Apache Pulsar Python client library"
 category = "main"
 optional = false
@@ -588,13 +588,30 @@ pluggy = [
     {file = "pluggy-0.13.1.tar.gz", hash = "sha256:15b2acde666561e1298d71b523007ed7364de07029219b604cf808bfa1c765b0"},
 ]
 pulsar-client = [
-    {file = "pulsar_client-2.9.1-cp27-cp27m-manylinux1_x86_64.whl", hash = "sha256:814ba4d9b7a20c978a65a0be0c9088cc9a7f7ca48837e26fa4f61e8ae17eb5d1"},
-    {file = "pulsar_client-2.9.1-cp27-cp27mu-manylinux1_x86_64.whl", hash = "sha256:183b516e155f38a7f3670b8222ae9e2d5d5d9a0179472097b0608dd6856ca714"},
-    {file = "pulsar_client-2.9.1-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:5f63f940770a869a09f7e531f6255cf2e61861b3e09bd158fea32f23d5c4afdb"},
-    {file = "pulsar_client-2.9.1-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:31d5cdee769d6abcd1e51d86a0f8429bdb69ddf67cac20b2f1a185e75509325e"},
-    {file = "pulsar_client-2.9.1-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:ae4719b071d6f89b8dabea6e45b0674f835d15d23257b6511a733ff958cdf348"},
-    {file = "pulsar_client-2.9.1-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:75fa10d56bad5502af75da64bdf65ae3226ff8c303df8b9cd3de46b9c3ba8a67"},
-    {file = "pulsar_client-2.9.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:bf2e5e7226baca0c905ff4282ad35284a08d84ce596d051aeb7d7e0fdd38d7a7"},
+    {file = "pulsar_client-2.10.0-cp27-cp27m-manylinux1_x86_64.whl", hash = "sha256:87cbdd3bd2da9a034d4444faf2ab2623cdae14fb7f43628efd2a4b5a9b278376"},
+    {file = "pulsar_client-2.10.0-cp27-cp27mu-manylinux1_x86_64.whl", hash = "sha256:6eb23368799fc13928136431d7dabdf2464bc7a99ee2435434d727eb84fec63d"},
+    {file = "pulsar_client-2.10.0-cp310-cp310-macosx_11_0_universal2.whl", hash = "sha256:36c2ca2ec1219379a75fe863cacf7e456a12580cb406c529dc4e4af4ea98efbb"},
+    {file = "pulsar_client-2.10.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:72651266114f41d05085c4ceb3bfbd6ed9c83a304d8994354b0878beb9350dc3"},
+    {file = "pulsar_client-2.10.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:bfd63716b937d95ee3e0f305b1ab6aca2806b2f93a1529d08c48e6fb21d98681"},
+    {file = "pulsar_client-2.10.0-cp310-cp310-musllinux_1_1_aarch64.whl", hash = "sha256:6ff07f494793fb0471ad94bf52201403e7a4dcf526c070daa0fb452a8ce7dc2c"},
+    {file = "pulsar_client-2.10.0-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:80c514405d4393e87c58b9332a10d34ee03e3120c11c0f5a54505eab0f29fde7"},
+    {file = "pulsar_client-2.10.0-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:3889c8260320bbeb74f59aa4f592cab956570c66f9d82741225135a742a8c8b5"},
+    {file = "pulsar_client-2.10.0-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:44246085c2bc183f2ec44df717e4d414b46b1eadcb117f521323b34d7daa820c"},
+    {file = "pulsar_client-2.10.0-cp37-cp37m-macosx_11_0_x86_64.whl", hash = "sha256:f76a307ac65cd1ea9070b0ae14804f8084371ea3bb14cb30aa82dfc1dd199a67"},
+    {file = "pulsar_client-2.10.0-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:c18d3333015941588d066b423dca0e8d825318e14561edc66a3cfc0b20855a8f"},
+    {file = "pulsar_client-2.10.0-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:54d67e2bc11842949a35fd656180129aa979a712cebd0dac28b23a2f87aa5a89"},
+    {file = "pulsar_client-2.10.0-cp37-cp37m-musllinux_1_1_aarch64.whl", hash = "sha256:4a54c550ab91a7610d066e5070a4cbd5be9c2421b3569a324d25029dabb338b3"},
+    {file = "pulsar_client-2.10.0-cp37-cp37m-musllinux_1_1_x86_64.whl", hash = "sha256:6ae2928d1080afe1eb9d20677b856e2a72232c2c4c167926280ae9f12578ddf0"},
+    {file = "pulsar_client-2.10.0-cp38-cp38-macosx_11_0_universal2.whl", hash = "sha256:52ba4a1c609626d14a71297db3406c82a337b0f6dc111b84a396fe1aae002845"},
+    {file = "pulsar_client-2.10.0-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:f6ffba8cc1a7a597787635db293a927f47192914eea3db07b8d33efd25f6ddf8"},
+    {file = "pulsar_client-2.10.0-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:02775ffe3d5a0afab2c949f89778d6b31d080625f3cc5968db67515c0294e085"},
+    {file = "pulsar_client-2.10.0-cp38-cp38-musllinux_1_1_aarch64.whl", hash = "sha256:26c5ebca7196d3f4eb88aedd329678106ac46a4abd7775c534278e827ccc086b"},
+    {file = "pulsar_client-2.10.0-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:57e092fa0da9e7c31e0c563a2ddb6fe3fe3ca0cc4d99c11daafb1a62878931ad"},
+    {file = "pulsar_client-2.10.0-cp39-cp39-macosx_11_0_universal2.whl", hash = "sha256:1bd16a4ffd2cdef02774cd7e1f5b815eaef2ec10ea8ef8c01afaf54ccc1bdc59"},
+    {file = "pulsar_client-2.10.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:2b62e57f79e74fea85660269315456ec61ab1cd33e506a0d67fd2535a29da15f"},
+    {file = "pulsar_client-2.10.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b7a5480b5e665a3898f4ba6e91efa0e2f4702d8c094a78023449e528693a688b"},
+    {file = "pulsar_client-2.10.0-cp39-cp39-musllinux_1_1_aarch64.whl", hash = "sha256:40d3215d115d6cd3925bd9352e7f839d785333807c735e4cefdf9189694f6ba1"},
+    {file = "pulsar_client-2.10.0-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:7b3e6363d216ac1ffe9fd3447b211d577b325d2e0acb76a6523e4d0087de1cf5"},
 ]
 py = [
     {file = "py-1.10.0-py2.py3-none-any.whl", hash = "sha256:3b80836aa6d1feeaa108e046da6423ab8f6ceda6468545ae8d02d9d58d18818a"},
