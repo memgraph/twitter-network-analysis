@@ -113,7 +113,7 @@ The React application will be running on `http://localhost:3000`.
 **Dynamic Community detection**:
 
 <p align="left">
-  <img width="300px" src="https://public-assets.memgraph.com/twitter-analysis-with-dynamic-pagerank/memgraph-tutorial-twitter-pagerank-graph-schema.png">
+  <img width="300px" src="img/memgraph-tutorial-twitter-pagerank-graph-schema.png">
 </p>
 
 ![memgraph-tutorial-community-detection](https://raw.githubusercontent.com/memgraph/twitter-network-analysis/main/img/memgraph-tutorial-community-detection-stream.gif)
